@@ -6,52 +6,59 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="flex items-center justify-between h-20"> {/* ↑ slightly taller */}
-      {/* ✅ Wrap logo + brand link for consistent left padding */}
-      <Link href="/" className="flex items-center gap-4">
-        <Image
-          src="/logo.png"
-          alt="Qopchiq"
-          width={120}
-          height={120}
-          className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
-          priority
-        />
-       
-      </Link>
-
-      <nav className="hidden md:flex items-center gap-8">
-        <a href="#how-it-works" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-          How it works
-        </a>
-        <a href="#impact" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-          Our impact
-        </a>
-        <a href="#about" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-          About
-        </a>
-      </nav>
-
-      <div className="flex items-center gap-3">
-        <Link
-          href="/signin"
-          className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
-        >
-          Sign in
-        </Link>
-        <Link
-          href="/onboarding"
-          className="rounded-full bg-[#00B14F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#009940] transition-colors"
-        >
-          Get started
-        </Link>
-      </div>
-    </div>
-  </div>
-</header>
-
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            {" "}
+            {/* ↑ slightly taller */}
+            {/* ✅ Wrap logo + brand link for consistent left padding */}
+            <Link href="/" className="flex items-center gap-4">
+              <Image
+                src="/logo.png"
+                alt="Qopchiq"
+                width={120}
+                height={120}
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
+                priority
+              />
+            </Link>
+            <nav className="hidden md:flex items-center gap-8">
+              <a
+                href="#how-it-works"
+                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                How it works
+              </a>
+              <a
+                href="#impact"
+                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Our impact
+              </a>
+              <a
+                href="#about"
+                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                About
+              </a>
+            </nav>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/signin"
+                className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/onboarding"
+                className="rounded-full bg-[#00B14F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#009940] transition-colors"
+              >
+                Get started
+              </Link>
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
@@ -100,15 +107,35 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-            <div className="relative">
-              <div className="aspect-square rounded-3xl bg-gradient-to-br from-green-50 to-green-100 p-8 flex items-center justify-center">
+            <div className="relative flex justify-center items-center">
+              {/* Background bubble effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-green-100 to-green-200 rounded-[2.5rem] blur-3xl opacity-40 animate-pulse" />
+
+              <div className="relative bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-500 ease-in-out">
                 <Image
-                  src="/logo.png"
-                  alt="Qopchiq"
-                  width={400}
-                  height={400}
-                  className="w-full max-w-md"
+                  src="/phone.jpg"
+                  alt="Qopchiq App Screenshot"
+                  width={300}
+                  height={300}
+                  className="w-3/4 sm:w-2/3 mx-auto rounded-4xl drop-shadow-2xl animate-float"
                 />
+
+                {/* Decorative emojis / stickers */}
+                <div className="absolute -top-4 -left-4 text-3xl animate-bounce-slow">
+                  🍎
+                </div>
+                <div
+                  className="absolute -bottom-6 right-0 text-3xl animate-bounce-slow"
+                  style={{ animationDelay: "0.6s" }}
+                >
+                  🥦
+                </div>
+                <div
+                  className="absolute top-10 -right-6 text-3xl animate-bounce-slow"
+                  style={{ animationDelay: "1.2s" }}
+                >
+                  💚
+                </div>
               </div>
             </div>
           </div>
@@ -303,15 +330,15 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-3 mb-4">
                 <Image
                   src="/logo.png"
                   alt="Qopchiq"
-                  width={32}
-                  height={32}
+                  width={120}
+                  height={120}
                   className="w-8 h-8 brightness-0 invert"
                 />
-                <span className="font-serif text-xl font-bold">Qopchiq</span>
+              
               </div>
               <p className="text-sm text-gray-400">
                 Fighting food waste, one meal at a time.
