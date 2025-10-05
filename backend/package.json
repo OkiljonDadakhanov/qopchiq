@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "nodemon backend/index.js",
-    "start": "node backend/index.js"
+    "dev": "nodemon index.js",
+    "start": "node index.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
