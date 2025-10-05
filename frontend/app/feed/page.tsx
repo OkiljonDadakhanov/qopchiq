@@ -52,9 +52,7 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <div className="px-6 py-3 flex items-center justify-between border-b border-gray-100">
-        <span className="text-sm font-medium">9:19</span>
-      </div>
+      
 
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-100">

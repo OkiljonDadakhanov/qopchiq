@@ -44,7 +44,7 @@ export default function OnboardingPage() {
     <div className="flex min-h-screen flex-col bg-white">
       {/* Status Bar */}
       <div className="flex items-center justify-between px-6 py-3 text-sm">
-        <span className="font-semibold">9:19</span>
+      
         <div className="flex items-center gap-1">
           <div className="h-3 w-3">
             <svg viewBox="0 0 24 24" fill="currentColor">

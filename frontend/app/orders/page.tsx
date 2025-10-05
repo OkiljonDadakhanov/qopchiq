@@ -12,9 +12,7 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Status Bar */}
-      <div className="px-6 py-3 flex items-center justify-between border-b border-gray-100">
-        <span className="text-sm font-medium">9:19</span>
-      </div>
+     
 
       {/* Header */}
       <div className="px-6 py-6 border-b border-gray-100">
@@ -22,7 +20,7 @@ export default function OrdersPage() {
       </div>
 
       {/* Tabs */}
-      <div className="px-6 py-4 border-b border-gray-100">
+      {/* <div className="px-6 py-4 border-b border-gray-100">
         <div className="flex gap-4">
           <button
             onClick={() => setActiveTab("pickup")}
@@ -41,7 +39,7 @@ export default function OrdersPage() {
             Delivery
           </button>
         </div>
-      </div>
+      </div> */}
 
       {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">

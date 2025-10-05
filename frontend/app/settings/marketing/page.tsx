@@ -15,9 +15,7 @@ export default function MarketingPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Status Bar */}
-      <div className="px-6 py-3 flex items-center justify-between border-b border-gray-100">
-        <span className="text-sm font-medium">9:19</span>
-      </div>
+     
 
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-4">
