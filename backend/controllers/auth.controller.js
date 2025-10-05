@@ -27,14 +27,35 @@ export const signup = async (req, res) => {
 
        res.status(201).json({ success: true, message: "User created successfully", user: {...user._doc, password: undefined} });
 
-
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 }
 
 export const login = async (req, res) => {
-    res.send("Login controller");
+    const { email, password } = req.body;
+    try {
+        if (!email || !password) {
+            throw new Error("All fields are required");
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        // Generate JWT and set cookie
+        generateJwtTokenandSetCookie(res, user._id);
+
+        res.status(200).json({ success: true, message: "Login successful", user: { ...user._doc, password: undefined } });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
 }
 
 export const logout = async (req, res) => {
