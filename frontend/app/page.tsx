@@ -113,7 +113,7 @@ export default function LandingPage() {
 
               <div className="relative bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-500 ease-in-out">
                 <Image
-                  src="/phone.jpg"
+                  src="/phone.png"
                   alt="Qopchiq App Screenshot"
                   width={300}
                   height={300}
