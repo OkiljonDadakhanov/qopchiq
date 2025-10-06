@@ -29,6 +29,13 @@
   animation: bounce-slow 3s ease-in-out infinite;
 }
 
+/* Hide mobile-only pages on desktop before JS runs */
+@media (min-width: 768px) {
+  html[data-mobile-only="true"] body > *:not(.mobile-warning) {
+    display: none !important;
+  }
+}
+
 
 :root {
   --background: oklch(1 0 0);

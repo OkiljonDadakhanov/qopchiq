@@ -1,17 +1,16 @@
 "use client";
+
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
 export default function MobileOnlyNotice() {
   const pathname = usePathname();
-  const [isMobile, setIsMobile] = useState(true);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null); // null = unknown during SSR
 
-  // All mobile-only routes
   const mobileOnlyRoutes = [
     "/feed",
     "/profile",
-    "/profile-edit",
     "/restaurant",
     "/profile-setup",
     "/settings/location",
@@ -25,23 +24,36 @@ export default function MobileOnlyNotice() {
     "/filter",
     "/forgot-password",
     "/orders",
-    "/more"
+    "/favourites",
+    "/more",
   ];
 
   const shouldShow = mobileOnlyRoutes.some((r) => pathname.startsWith(r));
 
   useEffect(() => {
+    // Detect on mount only (prevents flicker)
     const checkWidth = () => setIsMobile(window.innerWidth < 768);
     checkWidth();
     window.addEventListener("resize", checkWidth);
     return () => window.removeEventListener("resize", checkWidth);
   }, []);
 
-  if (!shouldShow || isMobile) return null;
+  // ⚠️ During SSR or before hydration, hide everything
+  if (isMobile === null) {
+    return (
+      <div className="fixed inset-0 bg-white" aria-hidden="true"></div>
+    );
+  }
 
+  // if not a mobile-only route → do nothing
+  if (!shouldShow) return null;
+  // if user is already on mobile → show app content
+  if (isMobile) return null;
+
+  // Otherwise, show banner
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 text-white text-center px-6">
-      {/* Background food emojis / images */}
+      {/* Food emojis */}
       <div className="absolute inset-0 pointer-events-none select-none opacity-20 text-6xl">
         <div className="absolute top-6 left-10 animate-bounce">🍕</div>
         <div className="absolute top-20 right-16 animate-pulse">🥗</div>
@@ -49,7 +61,7 @@ export default function MobileOnlyNotice() {
         <div className="absolute bottom-16 right-14 animate-pulse">🍩</div>
       </div>
 
-      {/* Text Section */}
+      {/* Text */}
       <div className="relative z-10 mb-6">
         <h1 className="text-3xl font-bold mb-3 drop-shadow-lg">
           Mobile View Only 📱
@@ -57,11 +69,11 @@ export default function MobileOnlyNotice() {
         <p className="text-gray-100 max-w-md leading-relaxed">
           The <span className="font-semibold">Qopchiq</span> app is crafted for
           mobile experience. <br /> Please open it on your phone or resize your
-          browser window below <span className="font-semibold">768px</span>.
+          browser below <span className="font-semibold">768px</span>.
         </p>
       </div>
 
-      {/* Screenshot Mockup */}
+      {/* Screenshot mockup */}
       <div className="relative z-10 mt-4">
         <div className="rounded-[2.5rem] border-[6px] border-white shadow-2xl overflow-hidden w-[280px] h-[580px] bg-gray-900">
           <Image
@@ -75,7 +87,6 @@ export default function MobileOnlyNotice() {
         </div>
       </div>
 
-      {/* Subtext */}
       <p className="mt-6 text-sm text-gray-200 relative z-10">
         Experience the best of{" "}
         <span className="font-bold text-yellow-300">food-saving</span> and{" "}
