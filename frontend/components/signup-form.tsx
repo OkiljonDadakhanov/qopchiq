@@ -1,11 +1,12 @@
 "use client"
-
 import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useCustomToast } from "@/components/custom-toast"
 
 export function SignUpForm() {
   const [fullName, setFullName] = useState("")
@@ -13,20 +14,19 @@ export function SignUpForm() {
   const [password, setPassword] = useState("")
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const toast = useCustomToast()
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
-    setSuccess(null)
 
     if (!agreedToTerms) {
-      setError("Please agree to the terms and policy before signing up.")
+      toast.warning("Terms Required", "Please agree to the terms and policy before signing up.", 3000)
       return
     }
 
     setLoading(true)
+
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
         method: "POST",
@@ -42,17 +42,27 @@ export function SignUpForm() {
 
       const data = await res.json()
 
-      if (!res.ok) {
-        throw new Error(data.message || "Something went wrong.")
+      // Check if the response indicates an error
+      if (!res.ok || data.success === false) {
+        // Display the error message from the API
+        toast.error("Signup Failed", data.message || "Something went wrong.")
+        setLoading(false)
+        return
       }
 
-      setSuccess("Account created successfully! Please verify your email.")
+      // Success case
+      toast.success("Account Created", "Please check your email to verify your account.")
+
+      // Clear form
       setFullName("")
       setEmail("")
       setPassword("")
       setAgreedToTerms(false)
+
+      // Redirect to verify page
+      router.push("/verify")
     } catch (err: any) {
-      setError(err.message || "Failed to sign up.")
+      toast.error("Signup Failed", err.message || "Something went wrong.")
     } finally {
       setLoading(false)
     }
@@ -132,10 +142,6 @@ export function SignUpForm() {
       >
         {loading ? "Signing up..." : "SIGN UP"}
       </Button>
-
-      {/* Feedback */}
-      {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-      {success && <p className="text-sm text-green-600 text-center">{success}</p>}
 
       {/* Footer Links */}
       <div className="text-center">

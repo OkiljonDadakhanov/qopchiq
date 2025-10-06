@@ -5,12 +5,11 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Mail, Lock } from "lucide-react"
+import { Mail } from "lucide-react"
 import { useCustomToast } from "@/components/custom-toast"
 
-export function SignInForm() {
+export function ForgotPasswordForm() {
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const toast = useCustomToast()
   const router = useRouter()
@@ -20,14 +19,13 @@ export function SignInForm() {
     setLoading(true)
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,
-          password,
         }),
       })
 
@@ -35,22 +33,21 @@ export function SignInForm() {
 
       // Check if the response indicates an error
       if (!res.ok || data.success === false) {
-        toast.error("Login Failed", data.message || "Invalid credentials.")
+        toast.error("Request Failed", data.message || "Something went wrong.")
         setLoading(false)
         return
       }
 
       // Success case
-      toast.success("Welcome back!", "You have successfully signed in.")
+      toast.success("Email Sent", "Please check your email for password reset instructions.")
 
       // Clear form
       setEmail("")
-      setPassword("")
 
-      // Redirect to feed page
-      router.push("/feed")
+      // Optional: redirect to signin or stay on page
+      // router.push("/signin")
     } catch (err: any) {
-      toast.error("Login Failed", err.message || "Something went wrong.")
+      toast.error("Request Failed", err.message || "Something went wrong.")
     } finally {
       setLoading(false)
     }
@@ -59,33 +56,24 @@ export function SignInForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
+        <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700">
+          Email Address
+        </label>
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
           <Input
             id="email"
             type="email"
-            placeholder="Email or Phone Number"
+            placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             className="h-12 rounded-lg border-gray-300 pl-10"
           />
         </div>
-      </div>
-
-      <div>
-        <div className="relative">
-          <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-          <Input
-            id="password"
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="h-12 rounded-lg border-gray-300 pl-10"
-          />
-        </div>
+        <p className="mt-2 text-sm text-gray-500">
+          We'll send you a link to reset your password
+        </p>
       </div>
 
       <Button 
@@ -93,17 +81,14 @@ export function SignInForm() {
         className="h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943]"
         disabled={loading}
       >
-        {loading ? "Signing in..." : "SIGN IN"}
+        {loading ? "Sending..." : "SEND RESET LINK"}
       </Button>
 
       <div className="text-center">
-        <Link href="/forgot-password" className="text-sm font-semibold text-[#00B14F] hover:underline">
-          Forgot password?
-        </Link>
-        <p className="mt-4 text-sm text-gray-600">
-          Don't have an account?{" "}
-          <Link href="/signup" className="font-semibold text-[#00B14F] hover:underline">
-            Sign Up
+        <p className="text-sm text-gray-600">
+          Remember your password?{" "}
+          <Link href="/signin" className="font-semibold text-[#00B14F] hover:underline">
+            Sign In
           </Link>
         </p>
       </div>

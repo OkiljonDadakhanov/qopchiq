@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import MobileOnlyNotice from "@/components/mobile-banner";
 import BottomNavWrapper from "@/components/bottom-navigation-wrapper";
+import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
   title: "qopchiq",
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} min-h-screen bg-white`}>
         <MobileOnlyNotice />
         {children}
+        <Toaster />
         <Analytics />
         {/* ✅ Wrapper decides when to show the BottomNav */}
         <BottomNavWrapper />
