@@ -18,7 +18,7 @@ export default function AddAddressPage() {
       {/* Header */}
       <div className="px-6 py-4 flex items-center gap-4 border-b border-gray-100">
         <button onClick={() => router.back()} className="p-2 -ml-2">
-          <ArrowLeft className="w-6 h-6" />
+          <ArrowLeft className="w-6 h-6 fixed" />
         </button>
         <h1 className="text-xl font-bold">New address</h1>
       </div>

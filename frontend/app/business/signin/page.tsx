@@ -28,7 +28,7 @@ export default function BusinessSigninPage() {
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-8">
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 " />
             Back to home
           </Link>
 

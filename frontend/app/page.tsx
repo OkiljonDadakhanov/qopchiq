@@ -330,16 +330,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <Image
-                  src="/logo.png"
-                  alt="Qopchiq"
-                  width={120}
-                  height={120}
-                  className="w-8 h-8 brightness-0 invert"
-                />
               
-              </div>
               <p className="text-sm text-gray-400">
                 Fighting food waste, one meal at a time.
               </p>

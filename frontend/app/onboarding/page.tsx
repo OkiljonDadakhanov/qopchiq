@@ -43,11 +43,7 @@ export default function OnboardingPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       {/* Status Bar */}
-      <div className="flex items-center justify-between px-6 py-3 text-sm">
       
-      
-      </div>
-
       {/* Skip Button */}
       {currentStep < onboardingSteps.length - 1 && (
         <div className="px-6 py-4 text-right">
