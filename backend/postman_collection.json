@@ -28,7 +28,29 @@
               "mode": "raw",
               "raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"password\": \"testpassword123\"\n}"
             },
-            "description": "Register a new user account"
+            "description": "Register a new user account. Sends verification email."
+          }
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/verify-email",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "verify-email"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"code\": \"123456\"\n}"
+            },
+            "description": "Verify user's email with the code sent during registration"
           }
         },
         {
@@ -57,6 +79,18 @@
           "name": "Logout",
           "request": {
             "method": "POST",
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/logout",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Logout the current user and clear JWT cookie"
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
@@ -64,11 +98,56 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/auth/logout",
+              "raw": "{{BASE_URL}}/api/auth/forgot-password",
               "host": ["{{BASE_URL}}"],
-              "path": ["api", "auth", "logout"]
+              "path": ["api", "auth", "forgot-password"]
             },
-            "description": "Logout the current user and clear JWT cookie"
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\"\n}"
+            },
+            "description": "Request password reset link via email"
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/reset-password/:token",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "reset-password", ":token"],
+              "variable": [
+                {
+                  "key": "token",
+                  "value": "reset-token-here",
+                  "description": "Password reset token received via email"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"password\": \"newpassword123\"\n}"
+            },
+            "description": "Reset password using token received via email"
+          }
+        },
+        {
+          "name": "Check Auth",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/check",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "check"]
+            },
+            "description": "Check if user is authenticated and get user details"
           }
         }
       ]
