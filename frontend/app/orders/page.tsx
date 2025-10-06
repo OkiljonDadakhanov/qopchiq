@@ -92,36 +92,7 @@ export default function OrdersPage() {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="border-t border-gray-100 bg-white">
-        <div className="flex items-center justify-around py-3">
-          <button
-            onClick={() => router.push("/feed")}
-            className="flex flex-col items-center gap-1 px-4 py-2 text-gray-400"
-          >
-            <Package className="w-6 h-6" />
-            <span className="text-xs font-medium">Pick up</span>
-          </button>
-          <button
-            onClick={() => router.push("/favourites")}
-            className="flex flex-col items-center gap-1 px-4 py-2 text-gray-400"
-          >
-            <Heart className="w-6 h-6" />
-            <span className="text-xs font-medium">Favourites</span>
-          </button>
-          <button className="flex flex-col items-center gap-1 px-4 py-2 text-[#00B14F]">
-            <ShoppingBag className="w-6 h-6" />
-            <span className="text-xs font-medium">Orders</span>
-            <div className="w-12 h-1 bg-[#00B14F] rounded-full mt-1" />
-          </button>
-          <button
-            onClick={() => router.push("/more")}
-            className="flex flex-col items-center gap-1 px-4 py-2 text-gray-400"
-          >
-            <Menu className="w-6 h-6" />
-            <span className="text-xs font-medium">More</span>
-          </button>
-        </div>
-      </div>
+      
     </div>
   )
 }

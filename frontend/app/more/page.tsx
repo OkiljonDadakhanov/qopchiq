@@ -217,37 +217,7 @@ export default function MorePage() {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="mt-auto border-t border-gray-100 bg-white">
-        <div className="flex items-center justify-around py-3">
-          <button
-            onClick={() => router.push("/feed")}
-            className="flex flex-col items-center gap-1 px-4 py-2 text-gray-400"
-          >
-            <Package className="w-6 h-6" />
-            <span className="text-xs font-medium">Pick up</span>
-          </button>
-          <button
-            onClick={() => router.push("/favourites")}
-            className="flex flex-col items-center gap-1 px-4 py-2 text-gray-400"
-          >
-            <Heart className="w-6 h-6" />
-            <span className="text-xs font-medium">Favourites</span>
-          </button>
-          <button
-            onClick={() => router.push("/orders")}
-            className="flex flex-col items-center gap-1 px-4 py-2 text-gray-400"
-          >
-            <ShoppingBag className="w-6 h-6" />
-            <span className="text-xs font-medium">Orders</span>
-          </button>
-          <button className="flex flex-col items-center gap-1 px-4 py-2 text-[#00B14F]">
-            <Menu className="w-6 h-6" />
-            <span className="text-xs font-medium">More</span>
-            <div className="w-12 h-1 bg-[#00B14F] rounded-full mt-1" />
-          </button>
-        </div>
-      </div>
-
+  
       {/* CO2 Explanation Modal */}
       <Sheet open={showCO2Modal} onOpenChange={setShowCO2Modal}>
         <SheetContent side="bottom" className="rounded-t-3xl">

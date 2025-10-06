@@ -11,6 +11,7 @@ export default function MobileOnlyNotice() {
   const mobileOnlyRoutes = [
     "/feed",
     "/profile",
+    "/profile-edit",
     "/restaurant",
     "/profile-setup",
     "/settings/location",
@@ -24,6 +25,7 @@ export default function MobileOnlyNotice() {
     "/filter",
     "/forgot-password",
     "/orders",
+    "/more"
   ];
 
   const shouldShow = mobileOnlyRoutes.some((r) => pathname.startsWith(r));

@@ -4,6 +4,7 @@ import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import MobileOnlyNotice from '@/components/mobile-banner'
+import BottomNav from '@/components/bottom-navigation'
 
 export const metadata: Metadata = {
   title: 'qopchiq',
@@ -22,6 +23,7 @@ export default function RootLayout({
         <MobileOnlyNotice/>
         {children}
         <Analytics />
+        <BottomNav/>
       </body>
     </html>
   )
