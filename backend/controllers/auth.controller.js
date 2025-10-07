@@ -143,8 +143,15 @@ export const forgotPassword = async (req, res) => {
 
 		await user.save();
 
+		// Build reset URL with a safe fallback for CLIENT_URL to avoid 'undefined' in emails
+		const CLIENT_URL = process.env.CLIENT_URL;
+		const resetPath = `/reset-password/${resetToken}`;
+		// Ensure we produce a proper absolute URL even if CLIENT_URL has trailing slash
+		const resetURL = `${CLIENT_URL.replace(/\/$/, '')}${resetPath}`;
+		console.log("Password reset URL (sent in email):", resetURL);
+
 		// send email
-		await sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
+		await sendPasswordResetEmail(user.email, resetURL);
 
 		res.status(200).json({ success: true, message: "Password reset link sent to your email" });
 	} catch (error) {
