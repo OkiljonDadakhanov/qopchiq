@@ -1,23 +1,58 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { ChevronRight, Package, Heart, ShoppingBag, Menu, User, Mail, Settings } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ChevronRight,
+  Package,
+  Mail,
+  Settings,
+  User,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 export default function MorePage() {
-  const router = useRouter()
-  const [showCO2Modal, setShowCO2Modal] = useState(false)
+  const router = useRouter();
+  const [showCO2Modal, setShowCO2Modal] = useState(false);
+  const [fullName, setFullName] = useState<string>("");
+
+  // ✅ Helper to get cookie by name
+  function getCookie(name: string) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(";").shift();
+  }
+
+  // ✅ Read cookie on mount
+  useEffect(() => {
+    const cookie = getCookie("qopchiq_user");
+    if (cookie) {
+      try {
+        const user = JSON.parse(decodeURIComponent(cookie));
+        setFullName(user.name || "User");
+      } catch {
+        setFullName("User");
+      }
+    } else {
+      router.push("/signin");
+    }
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      
-
       {/* Header */}
       <div className="px-6 py-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Hey, Akilhan!</h1>
+          <h1 className="text-3xl font-bold">
+            Hey, {fullName ? fullName.split(" ")[0] : "User"}!
+          </h1>
           <button
             onClick={() => router.push("/profile")}
             className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center"
@@ -34,15 +69,22 @@ export default function MorePage() {
               <div>
                 <p className="text-lg font-semibold mb-1">What does saving</p>
                 <p className="text-lg font-semibold">0 kg of CO₂ really mean?</p>
-                <button className="text-sm text-[#00B14F] underline mt-2">Find out!</button>
+                <button className="text-sm text-[#00B14F] underline mt-2">
+                  Find out!
+                </button>
               </div>
               <div className="text-6xl">🌍</div>
             </div>
           </div>
 
-          <button onClick={() => setShowCO2Modal(true)} className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+          <button
+            onClick={() => setShowCO2Modal(true)}
+            className="flex items-center gap-2 text-sm text-gray-600 mb-4"
+          >
             <span>ℹ️</span>
-            <span className="underline">Curious how we count it? Click here to see!</span>
+            <span className="underline">
+              Curious how we count it? Click here to see!
+            </span>
           </button>
 
           {/* Stats Cards */}
@@ -88,7 +130,9 @@ export default function MorePage() {
         {/* Good to Know Section */}
         <div className="mb-6">
           <h2 className="text-xl font-bold mb-4">Good to Know</h2>
-          <p className="text-sm text-gray-600 mb-4">See how to use Qopchiq with ease</p>
+          <p className="text-sm text-gray-600 mb-4">
+            See how to use Qopchiq with ease
+          </p>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="bg-yellow-100 rounded-3xl p-6 border-2 border-dashed border-yellow-300">
               <p className="text-sm font-bold mb-2">Get to know</p>
@@ -139,7 +183,9 @@ export default function MorePage() {
           </div>
           <div className="flex-1">
             <p className="font-semibold mb-1">Something on your mind?</p>
-            <button className="text-sm text-[#00B14F] underline">Get in touch</button>
+            <button className="text-sm text-[#00B14F] underline">
+              Get in touch
+            </button>
           </div>
         </div>
 
@@ -185,8 +231,12 @@ export default function MorePage() {
             <span className="text-2xl">⭐</span>
           </div>
           <div className="flex-1">
-            <p className="font-semibold mb-1">Want to start selling surplus on Qopchiq?</p>
-            <button className="text-sm text-[#00B14F] underline">Join Qopchiq</button>
+            <p className="font-semibold mb-1">
+              Want to start selling surplus on Qopchiq?
+            </p>
+            <button className="text-sm text-[#00B14F] underline">
+              Join Qopchiq
+            </button>
           </div>
         </div>
 
@@ -208,7 +258,11 @@ export default function MorePage() {
 
         {/* Logout Button */}
         <Button
-          onClick={() => router.push("/")}
+          onClick={() => {
+            document.cookie =
+              "qopchiq_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            router.push("/signin");
+          }}
           variant="outline"
           className="w-full py-6 rounded-full text-base font-semibold border-2"
         >
@@ -216,19 +270,20 @@ export default function MorePage() {
         </Button>
       </div>
 
-      {/* Bottom Navigation */}
-  
-      {/* CO2 Explanation Modal */}
+      {/* CO2 Modal */}
       <Sheet open={showCO2Modal} onOpenChange={setShowCO2Modal}>
         <SheetContent side="bottom" className="rounded-t-3xl">
           <SheetHeader className="text-center">
             <div className="flex justify-center mb-6">
               <div className="text-8xl">🌍💚</div>
             </div>
-            <SheetTitle className="text-2xl font-bold text-center">How do we count the CO₂ saved?</SheetTitle>
+            <SheetTitle className="text-2xl font-bold text-center">
+              How do we count the CO₂ saved?
+            </SheetTitle>
             <SheetDescription className="text-base text-gray-600 leading-relaxed pt-4">
-              We rely on data from the FAO report and estimate CO₂ savings based on typical product sets usually found
-              in our packages — so you can see how every rescue really helps the planet 🌍💚
+              We rely on data from the FAO report and estimate CO₂ savings
+              based on typical product sets usually found in our packages — so
+              you can see how every rescue really helps the planet 🌍💚
             </SheetDescription>
           </SheetHeader>
           <div className="pt-6">
@@ -242,5 +297,5 @@ export default function MorePage() {
         </SheetContent>
       </Sheet>
     </div>
-  )
+  );
 }
