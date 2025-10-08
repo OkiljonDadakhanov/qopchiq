@@ -48,7 +48,7 @@ export default function BusinessListingsPage() {
             <div className="flex items-center gap-3">
               <Link href="/business/dashboard">
                 <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4 fixed" />
                 </Button>
               </Link>
               <h1 className="font-bold text-gray-900">My listings</h1>

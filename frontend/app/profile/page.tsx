@@ -1,16 +1,37 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { ArrowLeft, User } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
-  const router = useRouter()
+  const router = useRouter();
+  const [name, setName] = useState("Loading...");
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    try {
+      // 🧠 Read user cookie from document.cookie
+      const match = document.cookie.match(/(?:^|;\s*)qopchiq_user=([^;]+)/);
+      if (match) {
+        const decoded = decodeURIComponent(match[1]);
+        const user = JSON.parse(decoded);
+
+        setName(user.name || "User");
+        setEmail(user.email || "Not provided");
+      } else {
+        // No cookie → redirect to sign-in page
+        router.push("/signin");
+      }
+    } catch (error) {
+      console.error("Error reading user cookie:", error);
+      router.push("/signin");
+    }
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-    
-
       {/* Header */}
       <div className="px-6 py-4 flex items-center gap-4 border-b border-gray-100">
         <button onClick={() => router.back()} className="p-2 -ml-2">
@@ -28,7 +49,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-center mb-8">Akilhan</h2>
+        <h2 className="text-2xl font-bold text-center mb-8">{name}</h2>
 
         {/* Your Data Section */}
         <div className="mb-8">
@@ -37,12 +58,12 @@ export default function ProfilePage() {
           <div className="space-y-4">
             <div className="border-b border-gray-100 pb-3">
               <p className="text-sm text-gray-600 mb-1">Name</p>
-              <p className="text-base font-medium">Akilhan</p>
+              <p className="text-base font-medium">{name}</p>
             </div>
 
             <div className="border-b border-gray-100 pb-3">
               <p className="text-sm text-gray-600 mb-1">Email*</p>
-              <p className="text-base font-medium">akilhanmedia@gmail.com</p>
+              <p className="text-base font-medium">{email}</p>
             </div>
 
             <div className="border-b border-gray-100 pb-3">
@@ -57,14 +78,15 @@ export default function ProfilePage() {
       </div>
 
       {/* Edit Button */}
-      <div className="p-6 border-t border-gray-100">
-        <Button
-          onClick={() => router.push("/profile/edit")}
-          className="w-full h-14 bg-white hover:bg-gray-50 text-black border-2 border-gray-900 rounded-xl text-base font-semibold"
-        >
-          Edit
-        </Button>
-      </div>
+      <div className="sticky bottom-20 px-6 pb-6 bg-white border-t border-gray-100 shadow-sm">
+  <Button
+    onClick={() => router.push("/profile/edit")}
+    className="w-full h-14 bg-white hover:bg-gray-50 text-black border-2 border-gray-900 rounded-2xl text-base font-semibold shadow-sm"
+  >
+    Edit
+  </Button>
+</div>
+
     </div>
-  )
+  );
 }

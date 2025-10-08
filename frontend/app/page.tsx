@@ -4,6 +4,7 @@ import Image from "next/image";
 
 export default function LandingPage() {
   return (
+    <div className="min-h-screen bg-white overflow-x-hidden">
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
@@ -113,7 +114,7 @@ export default function LandingPage() {
 
               <div className="relative bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-500 ease-in-out">
                 <Image
-                  src="/phone.jpg"
+                  src="/phone.png"
                   alt="Qopchiq App Screenshot"
                   width={300}
                   height={300}
@@ -330,16 +331,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <Image
-                  src="/logo.png"
-                  alt="Qopchiq"
-                  width={120}
-                  height={120}
-                  className="w-8 h-8 brightness-0 invert"
-                />
               
-              </div>
               <p className="text-sm text-gray-400">
                 Fighting food waste, one meal at a time.
               </p>
@@ -415,6 +407,7 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+    </div>
     </div>
   );
 }

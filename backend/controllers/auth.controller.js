@@ -50,23 +50,40 @@ export const logout = async (req, res, next) => {
 	}
 };
 
-export const refresh = async (req, res, next) => {
-	try {
-		const { refreshToken } = req.cookies || {};
-		if (!refreshToken) throw BaseError.UnauthorizedError("Refresh token not found");
-		const data = await AuthService.refresh(refreshToken);
-		setRefreshTokenCookie(res, data.refreshToken);
-		return res.status(200).json({ success: true, accessToken: data.accessToken });
-	} catch (error) {
-		return next(error);
-	}
+export const logout = async (req, res) => {
+	res.clearCookie("token");
+	res.status(200).json({ success: true, message: "Logged out successfully" });
 };
 
-export const forgotPassword = async (req, res, next) => {
+export const forgotPassword = async (req, res) => {
+	const { email } = req.body;
 	try {
-		const { email } = req.body;
-		await AuthService.forgotPassword(email);
-		return res.status(200).json({ success: true, message: "Password reset link sent to your email" });
+		const user = await User.findOne({ email });
+
+		if (!user) {
+			return res.status(400).json({ success: false, message: "User not found" });
+		}
+
+		// Generate reset token
+		const resetToken = crypto.randomBytes(20).toString("hex");
+		const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
+
+		user.resetPasswordToken = resetToken;
+		user.resetPasswordExpiresAt = resetTokenExpiresAt;
+
+		await user.save();
+
+		// Build reset URL with a safe fallback for CLIENT_URL to avoid 'undefined' in emails
+		const CLIENT_URL = process.env.CLIENT_URL;
+		const resetPath = `/reset-password/${resetToken}`;
+		// Ensure we produce a proper absolute URL even if CLIENT_URL has trailing slash
+		const resetURL = `${CLIENT_URL.replace(/\/$/, '')}${resetPath}`;
+		console.log("Password reset URL (sent in email):", resetURL);
+
+		// send email
+		await sendPasswordResetEmail(user.email, resetURL);
+
+		res.status(200).json({ success: true, message: "Password reset link sent to your email" });
 	} catch (error) {
 		return next(error);
 	}
