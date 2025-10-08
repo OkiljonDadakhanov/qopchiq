@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Qopchiq API",
+    "name": "Qopchiq API V0.0.3",
     "description": "Authentication and user management API endpoints for Qopchiq application",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -21,8 +21,14 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/signup",
-              "host": ["{{BASE_URL}}"],
-              "path": ["api", "auth", "signup"]
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -43,14 +49,48 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/verify-email",
-              "host": ["{{BASE_URL}}"],
-              "path": ["api", "auth", "verify-email"]
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-email"
+              ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n    \"code\": \"123456\"\n}"
             },
             "description": "Verify user's email with the code sent during registration"
+          }
+        },
+        {
+          "name": "Resend Verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/resend-verification",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "resend-verification"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\"\n}"
+            },
+            "description": "Resend verification code with cooldown and daily limits"
           }
         },
         {
@@ -65,8 +105,14 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/login",
-              "host": ["{{BASE_URL}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -76,13 +122,37 @@
           }
         },
         {
+          "name": "Refresh",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/refresh",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Rotate refresh token from HttpOnly cookie and return new access token"
+          }
+        },
+        {
           "name": "Logout",
           "request": {
             "method": "POST",
             "url": {
               "raw": "{{BASE_URL}}/api/auth/logout",
-              "host": ["{{BASE_URL}}"],
-              "path": ["api", "auth", "logout"]
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
             },
             "description": "Logout the current user and clear JWT cookie"
           }
@@ -99,8 +169,14 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/forgot-password",
-              "host": ["{{BASE_URL}}"],
-              "path": ["api", "auth", "forgot-password"]
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forgot-password"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -121,8 +197,15 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/reset-password/:token",
-              "host": ["{{BASE_URL}}"],
-              "path": ["api", "auth", "reset-password", ":token"],
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password",
+                ":token"
+              ],
               "variable": [
                 {
                   "key": "token",
@@ -137,17 +220,131 @@
             },
             "description": "Reset password using token received via email"
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "User profile management endpoints",
+      "item": [
         {
-          "name": "Check Auth",
+          "name": "Get Me",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
             "url": {
-              "raw": "{{BASE_URL}}/api/auth/check",
-              "host": ["{{BASE_URL}}"],
-              "path": ["api", "auth", "check"]
+              "raw": "{{BASE_URL}}/api/users/me",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
             },
-            "description": "Check if user is authenticated and get user details"
+            "description": "Get current authenticated user's profile"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/me",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"updated@example.com\"\n}"
+            },
+            "description": "Update multiple profile fields (allowed: name, email)"
+          }
+        },
+        {
+          "name": "Update Single Field",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/me/:key",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me",
+                ":key"
+              ],
+              "variable": [
+                {
+                  "key": "key",
+                  "value": "name",
+                  "description": "Field to update (name or email)"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"Only Name Updated\"\n}"
+            },
+            "description": "Update a single field by key (name or email)"
+          }
+        },
+        {
+          "name": "Delete Me",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/me",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
+            },
+            "description": "Delete current authenticated user's account"
           }
         }
       ]
