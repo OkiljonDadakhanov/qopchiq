@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, User, ShieldCheck, ShieldAlert } from "lucide-react";
+import { ArrowLeft, User, ShieldCheck, ShieldAlert, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
@@ -14,27 +14,23 @@ export default function ProfilePage() {
     isVerified?: boolean;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        // 🧠 Read token from cookies
         const match = document.cookie.match(/(?:^|;\s*)qopchiq_token=([^;]+)/);
         if (!match) {
-          console.warn("No token found, redirecting...");
           router.push("/signin");
           return;
         }
 
         const token = decodeURIComponent(match[1]);
-
-        // 🌐 Fetch profile
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!res.ok) {
-          console.error("Profile fetch failed, redirecting...");
           router.push("/signin");
           return;
         }
@@ -42,7 +38,7 @@ export default function ProfilePage() {
         const data = await res.json();
         setUserData(data.user);
       } catch (err) {
-        console.error("Profile error:", err);
+        console.error("Error fetching profile:", err);
         router.push("/signin");
       } finally {
         setLoading(false);
@@ -52,6 +48,46 @@ export default function ProfilePage() {
     fetchProfile();
   }, [router]);
 
+  const handleDeleteAccount = async () => {
+    const confirmed = confirm("⚠️ Are you sure you want to permanently delete your account?");
+    if (!confirmed) return;
+
+    try {
+      setDeleting(true);
+
+      const match = document.cookie.match(/(?:^|;\s*)qopchiq_token=([^;]+)/);
+      if (!match) {
+        alert("You must be signed in to delete your account.");
+        router.push("/signin");
+        return;
+      }
+
+      const token = decodeURIComponent(match[1]);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.success === false) {
+        throw new Error(data.message || "Failed to delete account");
+      }
+
+      // 🧹 Clear cookies
+      document.cookie = "qopchiq_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+      document.cookie = "qopchiq_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+
+      alert("✅ Your account has been deleted successfully.");
+      router.push("/signin");
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("❌ Failed to delete account. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -60,9 +96,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (!userData) {
-    return null;
-  }
+  if (!userData) return null;
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -122,13 +156,22 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Edit Button */}
-      <div className="sticky bottom-20 px-6 pb-6 bg-white border-t border-gray-100 shadow-sm">
+      {/* Buttons */}
+      <div className="sticky bottom-20 px-6 pb-6 bg-white border-t border-gray-100 shadow-sm space-y-3">
         <Button
           onClick={() => router.push("/profile/edit")}
           className="cursor-pointer w-full h-14 bg-white hover:bg-gray-50 text-black border-2 border-gray-900 rounded-2xl text-base font-semibold shadow-sm"
         >
           Edit
+        </Button>
+
+        <Button
+          onClick={handleDeleteAccount}
+          disabled={deleting}
+          className="cursor-pointer w-full h-14 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-base font-semibold flex items-center justify-center gap-2"
+        >
+          <Trash2 className="w-5 h-5" />
+          {deleting ? "Deleting..." : "Delete Account"}
         </Button>
       </div>
     </div>
