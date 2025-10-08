@@ -50,11 +50,6 @@ export const logout = async (req, res, next) => {
 	}
 };
 
-export const logout = async (req, res) => {
-	res.clearCookie("token");
-	res.status(200).json({ success: true, message: "Logged out successfully" });
-};
-
 export const forgotPassword = async (req, res) => {
 	const { email } = req.body;
 	try {
