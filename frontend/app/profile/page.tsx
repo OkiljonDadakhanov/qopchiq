@@ -33,7 +33,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
-      <div className="px-6 py-4 flex items-center gap-4 border-b border-gray-100">
+      <div className="sticky px-6 py-4 flex items-center gap-4 border-b border-gray-100">
         <button onClick={() => router.back()} className="p-2 -ml-2">
           <ArrowLeft className="w-6 h-6" />
         </button>
