@@ -1,44 +1,54 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Mail } from "lucide-react"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Mail } from "lucide-react";
+import { useCustomToast } from "@/components/custom-toast";
 
 export function ForgotPasswordForm() {
-  const [email, setEmail] = useState("")
-  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const toast = useCustomToast();
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("[v0] Password reset requested for:", email)
-    // Add your password reset logic here
-    setIsSubmitted(true)
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  if (isSubmitted) {
-    return (
-      <div className="space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#00B14F]/10">
-          <Mail className="h-8 w-8 text-[#00B14F]" />
-        </div>
-        <div>
-          <h3 className="mb-2 text-xl font-bold text-gray-900">Check Your Email</h3>
-          <p className="text-sm text-gray-600">
-            We've sent password reset instructions to <span className="font-semibold">{email}</span>
-          </p>
-        </div>
-        <Link href="/signin" className="block">
-          <Button className="h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943]">
-            Back to Sign In
-          </Button>
-        </Link>
-      </div>
-    )
-  }
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || data.success === false) {
+        toast.error("Request Failed", data.message || "Email not found.");
+        setLoading(false);
+        return;
+      }
+
+      toast.success("Email Sent", "Check your inbox for password reset instructions.");
+
+      // ✅ Save email temporarily (so CheckEmail page can show it)
+      sessionStorage.setItem("resetEmail", email);
+
+      // ✅ Redirect to Check Email page
+      router.push("/check-email");
+    } catch (err: any) {
+      toast.error("Error", err.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -57,8 +67,12 @@ export function ForgotPasswordForm() {
         </div>
       </div>
 
-      <Button type="submit" className="h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943]">
-        Send Reset Link
+      <Button
+        type="submit"
+        className="h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943]"
+        disabled={loading}
+      >
+        {loading ? "Sending..." : "Send Reset Link"}
       </Button>
 
       <div className="text-center">
@@ -67,5 +81,5 @@ export function ForgotPasswordForm() {
         </Link>
       </div>
     </form>
-  )
+  );
 }

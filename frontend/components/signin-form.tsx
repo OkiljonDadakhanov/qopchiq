@@ -45,7 +45,7 @@ export function SignInForm() {
       setEmail("");
       setPassword("");
 
-      router.push("/more");
+      router.push("/feed");
     } catch (err: any) {
       toast.error("Login Failed", err.message || "Something went wrong.");
     } finally {
