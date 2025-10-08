@@ -1,5 +1,5 @@
 "use client";
-import type React from "react";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -24,7 +24,6 @@ export function SignInForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        credentials: "include", // if backend sets HttpOnly cookies
       });
 
       const data = await res.json();
@@ -35,13 +34,16 @@ export function SignInForm() {
         return;
       }
 
-      // ✅ Store user info in a cookie (client-side)
+      // ✅ Save both user and token in cookies
       document.cookie = `qopchiq_user=${encodeURIComponent(
         JSON.stringify(data.user)
       )}; path=/; max-age=${60 * 60 * 24 * 7}; secure; samesite=lax`;
 
-      toast.success("Welcome back!", "You have successfully signed in.");
+      document.cookie = `qopchiq_token=${data.accessToken}; path=/; max-age=${
+        60 * 60 * 24 * 7
+      }; secure; samesite=lax`;
 
+      toast.success("Welcome back!", "You have successfully signed in.");
       setEmail("");
       setPassword("");
 
