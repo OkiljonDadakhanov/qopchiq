@@ -1,206 +1,94 @@
-import bcryptjs from "bcryptjs";
-import crypto from "crypto";
+import dotenv from "dotenv";
+dotenv.config();
 
-import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
-import {
-	sendPasswordResetEmail,
-	sendResetSuccessEmail,
-	sendVerificationEmail,
-	sendWelcomeEmail,
-} from "../mail/emails.js";
-import { User } from "../models/user.model.js";
+import BaseError from "../errors/base.error.js";
+import AuthService from "../services/auth.service.js";
+import { setRefreshTokenCookie } from "../utils/cookies.js";
 
-export const signup = async (req, res) => {
-	const { email, password, name } = req.body;
-
+export const signup = async (req, res, next) => {
 	try {
-		if (!email || !password || !name) {
-			throw new Error("All fields are required");
-		}
-
-		const userAlreadyExists = await User.findOne({ email });
-		console.log("userAlreadyExists", userAlreadyExists);
-
-		if (userAlreadyExists) {
-			return res.status(400).json({ success: false, message: "User already exists" });
-		}
-
-		const hashedPassword = await bcryptjs.hash(password, 10);
-		const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
-
-		const user = new User({
-			email,
-			password: hashedPassword,
-			name,
-			verificationToken,
-			verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
-		});
-
-		await user.save();
-
-		// jwt
-		generateTokenAndSetCookie(res, user._id);
-
-		await sendVerificationEmail(user.email, verificationToken);
-
-		res.status(201).json({
-			success: true,
-			message: "User created successfully",
-			user: {
-				...user._doc,
-				password: undefined,
-			},
-		});
+		const { email, password, name } = req.body;
+		const data = await AuthService.signup(email, password, name);
+		setRefreshTokenCookie(res, data.refreshToken);
+		return res.status(201).json({ success: true, message: "User created successfully", user: data.user, accessToken: data.accessToken });
 	} catch (error) {
-		res.status(400).json({ success: false, message: error.message });
+		return next(error);
 	}
 };
 
-export const verifyEmail = async (req, res) => {
-	const { code } = req.body;
+export const verifyEmail = async (req, res, next) => {
 	try {
-		const user = await User.findOne({
-			verificationToken: code,
-			verificationTokenExpiresAt: { $gt: Date.now() },
-		});
-
-		if (!user) {
-			return res.status(400).json({ success: false, message: "Invalid or expired verification code" });
-		}
-
-		user.isVerified = true;
-		user.verificationToken = undefined;
-		user.verificationTokenExpiresAt = undefined;
-		await user.save();
-
-		await sendWelcomeEmail(user.email, user.name);
-
-		res.status(200).json({
-			success: true,
-			message: "Email verified successfully",
-			user: {
-				...user._doc,
-				password: undefined,
-			},
-		});
+		const { code } = req.body;
+		const data = await AuthService.verifyEmail(code);
+		// auto-login: set refreshToken cookie, but do not expose it in body
+		setRefreshTokenCookie(res, data.refreshToken);
+		return res.status(200).json({ success: true, message: "Email verified successfully", user: data.user, accessToken: data.accessToken });
 	} catch (error) {
-		console.log("error in verifyEmail ", error);
-		res.status(500).json({ success: false, message: "Server error" });
+		return next(error);
 	}
 };
 
-export const login = async (req, res) => {
-	const { email, password } = req.body;
+export const login = async (req, res, next) => {
 	try {
-		const user = await User.findOne({ email });
-		if (!user) {
-			return res.status(400).json({ success: false, message: "Invalid credentials" });
-		}
-		const isPasswordValid = await bcryptjs.compare(password, user.password);
-		if (!isPasswordValid) {
-			return res.status(400).json({ success: false, message: "Invalid credentials" });
-		}
-
-		generateTokenAndSetCookie(res, user._id);
-
-		user.lastLogin = new Date();
-		await user.save();
-
-		res.status(200).json({
-			success: true,
-			message: "Logged in successfully",
-			user: {
-				...user._doc,
-				password: undefined,
-			},
-		});
+		const { email, password } = req.body;
+		const data = await AuthService.login(email, password);
+		setRefreshTokenCookie(res, data.refreshToken);
+		return res.status(200).json({ success: true, message: "Logged in successfully", user: data.user, accessToken: data.accessToken });
 	} catch (error) {
-		console.log("Error in login ", error);
-		res.status(400).json({ success: false, message: error.message });
+		return next(error);
 	}
 };
 
-export const logout = async (req, res) => {
-	res.clearCookie("token");
-	res.status(200).json({ success: true, message: "Logged out successfully" });
-};
-
-export const forgotPassword = async (req, res) => {
-	const { email } = req.body;
+export const logout = async (req, res, next) => {
 	try {
-		const user = await User.findOne({ email });
-
-		if (!user) {
-			return res.status(400).json({ success: false, message: "User not found" });
-		}
-
-		// Generate reset token
-		const resetToken = crypto.randomBytes(20).toString("hex");
-		const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
-
-		user.resetPasswordToken = resetToken;
-		user.resetPasswordExpiresAt = resetTokenExpiresAt;
-
-		await user.save();
-
-		// Build reset URL with a safe fallback for CLIENT_URL to avoid 'undefined' in emails
-		const CLIENT_URL = process.env.CLIENT_URL;
-		const resetPath = `/reset-password/${resetToken}`;
-		// Ensure we produce a proper absolute URL even if CLIENT_URL has trailing slash
-		const resetURL = `${CLIENT_URL.replace(/\/$/, '')}${resetPath}`;
-		console.log("Password reset URL (sent in email):", resetURL);
-
-		// send email
-		await sendPasswordResetEmail(user.email, resetURL);
-
-		res.status(200).json({ success: true, message: "Password reset link sent to your email" });
+		const { refreshToken } = req.cookies || {};
+		await AuthService.logout(refreshToken);
+		res.clearCookie("refreshToken");
+		return res.status(200).json({ success: true, message: "Logged out successfully" });
 	} catch (error) {
-		console.log("Error in forgotPassword ", error);
-		res.status(400).json({ success: false, message: error.message });
+		return next(error);
 	}
 };
 
-export const resetPassword = async (req, res) => {
+export const refresh = async (req, res, next) => {
+	try {
+		const { refreshToken } = req.cookies || {};
+		if (!refreshToken) throw BaseError.UnauthorizedError("Refresh token not found");
+		const data = await AuthService.refresh(refreshToken);
+		setRefreshTokenCookie(res, data.refreshToken);
+		return res.status(200).json({ success: true, accessToken: data.accessToken });
+	} catch (error) {
+		return next(error);
+	}
+};
+
+export const forgotPassword = async (req, res, next) => {
+	try {
+		const { email } = req.body;
+		await AuthService.forgotPassword(email);
+		return res.status(200).json({ success: true, message: "Password reset link sent to your email" });
+	} catch (error) {
+		return next(error);
+	}
+};
+
+export const resetPassword = async (req, res, next) => {
 	try {
 		const { token } = req.params;
 		const { password } = req.body;
-
-		const user = await User.findOne({
-			resetPasswordToken: token,
-			resetPasswordExpiresAt: { $gt: Date.now() },
-		});
-
-		if (!user) {
-			return res.status(400).json({ success: false, message: "Invalid or expired reset token" });
-		}
-
-		// update password
-		const hashedPassword = await bcryptjs.hash(password, 10);
-
-		user.password = hashedPassword;
-		user.resetPasswordToken = undefined;
-		user.resetPasswordExpiresAt = undefined;
-		await user.save();
-
-		await sendResetSuccessEmail(user.email);
-
-		res.status(200).json({ success: true, message: "Password reset successful" });
+		await AuthService.resetPassword(token, password);
+		return res.status(200).json({ success: true, message: "Password reset successful" });
 	} catch (error) {
-		console.log("Error in resetPassword ", error);
-		res.status(400).json({ success: false, message: error.message });
+		return next(error);
 	}
 };
 
-export const checkAuth = async (req, res) => {
+export const resendVerification = async (req, res, next) => {
 	try {
-		const user = await User.findById(req.userId).select("-password");
-		if (!user) {
-			return res.status(400).json({ success: false, message: "User not found" });
-		}
-
-		res.status(200).json({ success: true, user });
+		const { email } = req.body;
+		await AuthService.resendVerification(email);
+		return res.status(200).json({ success: true, message: "Verification code resent" });
 	} catch (error) {
-		console.log("Error in checkAuth ", error);
-		res.status(400).json({ success: false, message: error.message });
+		return next(error);
 	}
 };
