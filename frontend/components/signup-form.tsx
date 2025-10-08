@@ -13,6 +13,7 @@ export function SignUpForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const [showTermsWarning, setShowTermsWarning] = useState(false)
   const [loading, setLoading] = useState(false)
   const toast = useCustomToast()
   const router = useRouter()
@@ -21,10 +22,16 @@ export function SignUpForm() {
     e.preventDefault()
 
     if (!agreedToTerms) {
-      toast.warning("Terms Required", "Please agree to the terms and policy before signing up.", 3000)
+      toast.warning(
+        "Terms Required",
+        "Please agree to the terms and policy before signing up.",
+        3000
+      )
+      setShowTermsWarning(true)
       return
     }
 
+    setShowTermsWarning(false)
     setLoading(true)
 
     try {
@@ -33,33 +40,22 @@ export function SignUpForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: fullName,
-          email,
-          password,
-        }),
+        body: JSON.stringify({ name: fullName, email, password }),
       })
 
       const data = await res.json()
 
-      // Check if the response indicates an error
       if (!res.ok || data.success === false) {
-        // Display the error message from the API
         toast.error("Signup Failed", data.message || "Something went wrong.")
         setLoading(false)
         return
       }
 
-      // Success case
       toast.success("Account Created", "Please check your email to verify your account.")
-
-      // Clear form
       setFullName("")
       setEmail("")
       setPassword("")
       setAgreedToTerms(false)
-
-      // Redirect to verify page
       router.push("/verify")
     } catch (err: any) {
       toast.error("Signup Failed", err.message || "Something went wrong.")
@@ -119,19 +115,31 @@ export function SignUpForm() {
       </div>
 
       {/* Terms Checkbox */}
-      <div className="flex items-center gap-2">
-        <Checkbox
-          id="terms"
-          checked={agreedToTerms}
-          onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
-        />
-        <label htmlFor="terms" className="text-sm text-gray-600">
-          I understand the{" "}
-          <Link href="/terms" className="text-[#00B14F] hover:underline">
-            terms & policy
-          </Link>
-          .
-        </label>
+      <div className="flex flex-col gap-1">
+        <div
+          className={`flex items-center gap-2 p-1 rounded-md transition ${
+            showTermsWarning ? "bg-red-50 border border-red-400" : ""
+          }`}
+        >
+          <Checkbox
+            id="terms"
+            checked={agreedToTerms}
+            onCheckedChange={(checked) => {
+              setAgreedToTerms(checked as boolean)
+              setShowTermsWarning(false)
+            }}
+          />
+          <label htmlFor="terms" className="text-sm text-gray-600">
+            I understand the{" "}
+            <Link href="/terms" className="text-[#00B14F] hover:underline">
+              terms & policy
+            </Link>
+            .
+          </label>
+        </div>
+        {showTermsWarning && (
+          <p className="text-xs text-red-500 ml-6">Please agree before continuing.</p>
+        )}
       </div>
 
       {/* Submit Button */}

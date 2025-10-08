@@ -22,6 +22,8 @@ export default function BottomNavWrapper() {
   if (pathname == "/business/dashboard") return null;
   if (pathname == "/business/listings/new") return null;
   if (pathname == "/business/profile") return null;
+  if (pathname == "/verify") return null;
+  if (pathname == "/check-email") return null;
 
 
   // ✅ Show on all other routes

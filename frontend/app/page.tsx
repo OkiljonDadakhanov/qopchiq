@@ -4,6 +4,7 @@ import Image from "next/image";
 
 export default function LandingPage() {
   return (
+    <div className="min-h-screen bg-white overflow-x-hidden">
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
@@ -406,6 +407,7 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+    </div>
     </div>
   );
 }
