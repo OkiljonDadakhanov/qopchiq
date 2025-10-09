@@ -12,6 +12,7 @@ import { connectDB } from "./db/connectDB.js";
 import authRoutes from "./routes/auth.route.js";
 import errorHandler from "./middlewares/error.middleware.js";
 import userRoutes from "./routes/user.route.js";
+import fileRoutes from "./routes/file.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +25,7 @@ app.use(cookieParser()); // allows us to parse incoming cookies
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/files", fileRoutes);
 // Global error handler (eng oxirida)
 app.use(errorHandler);
 

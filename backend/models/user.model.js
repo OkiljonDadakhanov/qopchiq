@@ -15,6 +15,9 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		phoneNumber: String,
+		avatar: String,
+		avatarFileId: String,
 		lastLogin: {
 			type: Date,
 			default: Date.now,
