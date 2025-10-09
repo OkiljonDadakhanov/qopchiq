@@ -16,16 +16,16 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
+  // ✅ Fetch user profile using token from localStorage
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const match = document.cookie.match(/(?:^|;\s*)qopchiq_token=([^;]+)/);
-        if (!match) {
+        const token = localStorage.getItem("qopchiq_token");
+        if (!token) {
           router.push("/signin");
           return;
         }
 
-        const token = decodeURIComponent(match[1]);
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -48,6 +48,7 @@ export default function ProfilePage() {
     fetchProfile();
   }, [router]);
 
+  // ✅ Handle delete account
   const handleDeleteAccount = async () => {
     const confirmed = confirm("⚠️ Are you sure you want to permanently delete your account?");
     if (!confirmed) return;
@@ -55,14 +56,13 @@ export default function ProfilePage() {
     try {
       setDeleting(true);
 
-      const match = document.cookie.match(/(?:^|;\s*)qopchiq_token=([^;]+)/);
-      if (!match) {
+      const token = localStorage.getItem("qopchiq_token");
+      if (!token) {
         alert("You must be signed in to delete your account.");
         router.push("/signin");
         return;
       }
 
-      const token = decodeURIComponent(match[1]);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -74,9 +74,8 @@ export default function ProfilePage() {
         throw new Error(data.message || "Failed to delete account");
       }
 
-      // 🧹 Clear cookies
-      document.cookie = "qopchiq_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
-      document.cookie = "qopchiq_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+      // 🧹 Clear token from localStorage
+      localStorage.removeItem("qopchiq_token");
 
       alert("✅ Your account has been deleted successfully.");
       router.push("/signin");

@@ -2,13 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  ChevronRight,
-  Package,
-  Mail,
-  Settings,
-  User,
-} from "lucide-react";
+import { ChevronRight, Package, Mail, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -17,33 +11,53 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useCustomToast } from "@/components/custom-toast";
 
 export default function MorePage() {
   const router = useRouter();
+  const toast = useCustomToast();
   const [showCO2Modal, setShowCO2Modal] = useState(false);
-  const [fullName, setFullName] = useState<string>("");
+  const [fullName, setFullName] = useState<string>("User");
 
-  // ✅ Helper to get cookie by name
-  function getCookie(name: string) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(";").shift();
-  }
-
-  // ✅ Read cookie on mount
+  // ✅ Read user info if available, else redirect
   useEffect(() => {
-    const cookie = getCookie("qopchiq_user");
-    if (cookie) {
-      try {
-        const user = JSON.parse(decodeURIComponent(cookie));
-        setFullName(user.name || "User");
-      } catch {
-        setFullName("User");
+    try {
+      const token = localStorage.getItem("qopchiq_token");
+      if (!token) {
+        router.push("/signin");
+        return;
       }
-    } else {
-      router.push("/signin");
+
+      // Optional: still load user name from cookie if available
+      const cookie = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("qopchiq_user="));
+      if (cookie) {
+        const user = JSON.parse(decodeURIComponent(cookie.split("=")[1]));
+        setFullName(user.name || "User");
+      }
+    } catch {
+      setFullName("User");
     }
   }, [router]);
+
+  // ✅ Logout logic
+  const handleLogout = () => {
+    try {
+      // Remove token from localStorage
+      localStorage.removeItem("qopchiq_token");
+
+      // Remove old cookie (if still exists)
+      document.cookie =
+        "qopchiq_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+      toast.success("Logged out", "You have successfully signed out.");
+      router.push("/signin");
+    } catch (err) {
+      console.error("Logout error:", err);
+      toast.error("Logout Failed", "Something went wrong while logging out.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -225,6 +239,8 @@ export default function MorePage() {
           </button>
         </div>
 
+        
+
         {/* Seller CTA */}
         <div className="bg-gray-50 rounded-2xl p-6 mb-6 flex items-center gap-4">
           <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
@@ -258,13 +274,9 @@ export default function MorePage() {
 
         {/* Logout Button */}
         <Button
-          onClick={() => {
-            document.cookie =
-              "qopchiq_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            router.push("/signin");
-          }}
+          onClick={handleLogout}
           variant="outline"
-          className="w-full py-6 rounded-full text-base font-semibold border-2"
+          className="mb-15 w-full py-6 rounded-full text-base font-semibold border-2"
         >
           Logout
         </Button>
