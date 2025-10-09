@@ -80,7 +80,7 @@ export default function OnboardingPage() {
         {currentStep < onboardingSteps.length - 1 ? (
           <Button
             onClick={handleNext}
-            className="h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943]"
+            className="cursor-pointer h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943]"
           >
             Next
             <ChevronRight className="ml-2 h-5 w-5" />
@@ -88,14 +88,14 @@ export default function OnboardingPage() {
         ) : (
           <div className="space-y-3">
             <Link href="/signup" className="block">
-              <Button className="h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943]">
+              <Button className="cursor-pointer h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943]">
                 Create Account
               </Button>
             </Link>
             <Link href="/signin" className="block">
               <Button
                 variant="outline"
-                className="h-12 w-full rounded-lg border-2 border-[#00B14F] font-semibold text-[#00B14F] hover:bg-[#00B14F]/5 bg-transparent"
+                className="cursor-pointer h-12 w-full rounded-lg border-2 border-[#00B14F] font-semibold text-[#00B14F] hover:bg-[#00B14F]/5 bg-transparent"
               >
                 Sign In
               </Button>

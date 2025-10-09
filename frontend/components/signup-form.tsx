@@ -1,162 +1,199 @@
 "use client"
-import type React from "react"
+
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { Mail, Lock, User as UserIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import { FormField } from "@/components/form-field"
 import { useCustomToast } from "@/components/custom-toast"
+import { useAppStore } from "@/store/store"
+import { authApi } from "@/api/api"
+import type { SignUpCredentials } from "@/types/types"
+
+
+const ROUTES = {
+  VERIFY: "/verify",
+  SIGNIN: "/signin",
+  TERMS: "/terms",
+} as const
+
+const TOAST_MESSAGES = {
+  SUCCESS: {
+    title: "Account Created",
+    description: "Check your email for verification.",
+  },
+  TERMS_REQUIRED: {
+    title: "Terms Required",
+    description: "Please agree to the terms first.",
+  },
+  ERROR: {
+    title: "Signup Failed",
+  },
+} as const
+
+
+
+interface SignUpFormData extends SignUpCredentials {
+  agreedToTerms: boolean
+}
+
 
 export function SignUpForm() {
-  const [fullName, setFullName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [agreedToTerms, setAgreedToTerms] = useState(false)
-  const [showTermsWarning, setShowTermsWarning] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const toast = useCustomToast()
   const router = useRouter()
+  const toast = useCustomToast()
+  const setUser = useAppStore((state) => state.setUser)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [formData, setFormData] = useState<SignUpFormData>({
+    name: "",
+    email: "",
+    password: "",
+    agreedToTerms: false,
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [showTermsWarning, setShowTermsWarning] = useState(false)
+
+ 
+
+  const handleChange = (
+    field: keyof SignUpFormData,
+    value: string | boolean
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+
+
+    if (field === "agreedToTerms" && value) {
+      setShowTermsWarning(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (!agreedToTerms) {
-      toast.warning(
-        "Terms Required",
-        "Please agree to the terms and policy before signing up.",
-        3000
-      )
+   
+    if (!formData.agreedToTerms) {
       setShowTermsWarning(true)
+      toast.warning(
+        TOAST_MESSAGES.TERMS_REQUIRED.title,
+        TOAST_MESSAGES.TERMS_REQUIRED.description
+      )
       return
     }
 
     setShowTermsWarning(false)
-    setLoading(true)
+    setIsLoading(true)
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: fullName, email, password }),
-      })
+      const { agreedToTerms, ...credentials } = formData
+      const data = await authApi.signUp(credentials)
 
-      const data = await res.json()
-
-      if (!res.ok || data.success === false) {
-        toast.error("Signup Failed", data.message || "Something went wrong.")
-        setLoading(false)
-        return
+    
+      if (data.success === false || !data?.accessToken) {
+        throw new Error(data?.message || "Signup failed")
       }
 
-      toast.success("Account Created", "Please check your email to verify your account.")
-      setFullName("")
-      setEmail("")
-      setPassword("")
-      setAgreedToTerms(false)
-      router.push("/verify")
-    } catch (err: any) {
-      toast.error("Signup Failed", err.message || "Something went wrong.")
+    
+      setUser({
+        name: formData.name,
+        email: formData.email,
+        token: data.accessToken,
+        isVerified: false,
+      })
+
+      toast.success(
+        TOAST_MESSAGES.SUCCESS.title,
+        TOAST_MESSAGES.SUCCESS.description
+      )
+
+      router.push(ROUTES.VERIFY)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Signup failed"
+      toast.error(TOAST_MESSAGES.ERROR.title, message)
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
+  // ===========================
+  // Render
+  // ===========================
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Full Name */}
-      <div>
-        <label htmlFor="fullName" className="mb-2 block text-sm font-medium text-gray-700">
-          Full Name
-        </label>
-        <Input
-          id="fullName"
-          type="text"
-          placeholder="Rixsimberganov Feruzbek"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          required
-          className="h-12 rounded-lg border-gray-300"
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      <FormField
+        id="name"
+        label="Full Name"
+        type="text"
+        placeholder="Rixsimberganov Feruzbek"
+        value={formData.name}
+        onChange={(e) => handleChange("name", e.target.value)}
+        required
+        icon={<UserIcon className="h-5 w-5" />}
+      />
 
-      {/* Email */}
-      <div>
-        <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700">
-          Email
-        </label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="example@email.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="h-12 rounded-lg border-gray-300"
-        />
-      </div>
+      <FormField
+        id="email"
+        label="Email"
+        type="email"
+        placeholder="example@email.com"
+        value={formData.email}
+        onChange={(e) => handleChange("email", e.target.value)}
+        required
+        icon={<Mail className="h-5 w-5" />}
+      />
 
-      {/* Password */}
-      <div>
-        <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-700">
-          Password
-        </label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="h-12 rounded-lg border-gray-300"
-        />
-      </div>
+      <FormField
+        id="password"
+        label="Password"
+        type="password"
+        placeholder="••••••••"
+        value={formData.password}
+        onChange={(e) => handleChange("password", e.target.value)}
+        required
+        icon={<Lock className="h-5 w-5" />}
+      />
 
-      {/* Terms Checkbox */}
       <div className="flex flex-col gap-1">
         <div
-          className={`flex items-center gap-2 p-1 rounded-md transition ${
+          className={`flex items-center gap-2 p-2 rounded-md transition-colors ${
             showTermsWarning ? "bg-red-50 border border-red-400" : ""
           }`}
         >
           <Checkbox
             id="terms"
-            checked={agreedToTerms}
-            onCheckedChange={(checked) => {
-              setAgreedToTerms(checked as boolean)
-              setShowTermsWarning(false)
-            }}
+            checked={formData.agreedToTerms}
+            onCheckedChange={(checked) =>
+              handleChange("agreedToTerms", checked as boolean)
+            }
           />
           <label htmlFor="terms" className="text-sm text-gray-600">
             I understand the{" "}
-            <Link href="/terms" className="text-[#00B14F] hover:underline">
+            <Link href={ROUTES.TERMS} className="text-[#00B14F] hover:underline">
               terms & policy
             </Link>
             .
           </label>
         </div>
-        {showTermsWarning && (
-          <p className="text-xs text-red-500 ml-6">Please agree before continuing.</p>
-        )}
+        
       </div>
 
-      {/* Submit Button */}
       <Button
         type="submit"
-        className="h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943]"
-        disabled={loading}
+        className="h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943] disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={isLoading}
       >
-        {loading ? "Signing up..." : "SIGN UP"}
+        {isLoading ? "Signing up..." : "SIGN UP"}
       </Button>
 
-      {/* Footer Links */}
-      <div className="text-center">
+      <div className="text-center space-y-2">
         <p className="text-sm text-gray-500">or sign up with</p>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="text-sm text-gray-600">
           Have an account?{" "}
-          <Link href="/signin" className="font-semibold text-[#00B14F] hover:underline">
+          <Link
+            href={ROUTES.SIGNIN}
+            className="font-semibold text-[#00B14F] hover:underline"
+          >
             Sign In
           </Link>
         </p>

@@ -1,4 +1,5 @@
-// components/custom-toast.tsx
+"use client"
+
 import { useToast } from "@/components/ui/use-toast"
 
 type ToastType = "success" | "error" | "warning" | "info"
@@ -12,44 +13,64 @@ interface CustomToastProps {
 
 const toastConfig = {
   success: {
-    icon: "🎉",
-    titlePrefix: "",
+    icon: "✅",
+    className: "border-green-500 bg-green-50",
   },
   error: {
     icon: "❌",
-    titlePrefix: "",
+    className: "border-red-500 bg-red-50",
   },
   warning: {
     icon: "⚠️",
-    titlePrefix: "",
+    className: "border-yellow-500 bg-yellow-50",
   },
   info: {
     icon: "ℹ️",
-    titlePrefix: "",
+    className: "border-blue-500 bg-blue-50",
   },
 }
 
 export function useCustomToast() {
   const { toast } = useToast()
 
-  const showToast = ({ type, title, description, duration = 4000 }: CustomToastProps) => {
+  const showToast = ({ 
+    type, 
+    title, 
+    description, 
+    duration = 4000 
+  }: CustomToastProps) => {
+   
     const config = toastConfig[type]
     
-    toast({
-      title: `${config.icon} ${config.titlePrefix}${title}`,
-      description,
-      duration,
-    })
+    try {
+      toast({
+        title: `${config.icon} ${title}`,
+        description,
+        duration,
+        className: config.className,
+      })
+      
+    } catch (error) {
+      console.error("❌ Toast error:", error)
+    }
   }
 
   return {
-    success: (title: string, description?: string, duration?: number) =>
-      showToast({ type: "success", title, description, duration }),
-    error: (title: string, description?: string, duration?: number) =>
-      showToast({ type: "error", title, description, duration }),
-    warning: (title: string, description?: string, duration?: number) =>
-      showToast({ type: "warning", title, description, duration }),
-    info: (title: string, description?: string, duration?: number) =>
-      showToast({ type: "info", title, description, duration }),
+    success: (title: string, description?: string, duration?: number) => {
+     
+      return showToast({ type: "success", title, description, duration })
+    },
+    error: (title: string, description?: string, duration?: number) => {
+     
+      return showToast({ type: "error", title, description, duration })
+    },
+    warning: (title: string, description?: string, duration?: number) => {
+     
+      return showToast({ type: "warning", title, description, duration })
+    },
+    info: (title: string, description?: string, duration?: number) => {
+     
+      return showToast({ type: "info", title, description, duration })
+    },
   }
 }
