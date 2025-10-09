@@ -1,101 +1,94 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, User, ShieldCheck, ShieldAlert, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState, useRef } from "react"
+import { useRouter } from "next/navigation"
+import { ArrowLeft, User, ShieldCheck, ShieldAlert, Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { api } from "@/api/api"
+import { useAppStore, useHasHydrated } from "@/store/store"
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const [userData, setUserData] = useState<{
-    name: string;
-    email: string;
-    phone?: string;
-    isVerified?: boolean;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [deleting, setDeleting] = useState(false);
+  const router = useRouter()
+  const hasHydrated = useHasHydrated()
+  const { user, setUser, clearAll } = useAppStore()
 
-  // ✅ Fetch user profile using token from localStorage
+  const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState(false)
+  const fetchedRef = useRef(false) // ✅ prevent double-fetch
+
+  // ✅ Fetch user profile once after hydration
   useEffect(() => {
+    if (!hasHydrated || fetchedRef.current) return
+    fetchedRef.current = true
+
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("qopchiq_token");
-        if (!token) {
-          router.push("/signin");
-          return;
+        if (!user?.token) {
+          router.push("/signin")
+          return
         }
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const { data } = await api.get("/api/users/me")
 
-        if (!res.ok) {
-          router.push("/signin");
-          return;
+        if (data?.user) {
+          setUser({
+            ...user,
+            name: data.user.name ?? user.name,
+            email: data.user.email ?? user.email,
+            isVerified: data.user.isVerified ?? user.isVerified,
+          })
         }
-
-        const data = await res.json();
-        setUserData(data.user);
       } catch (err) {
-        console.error("Error fetching profile:", err);
-        router.push("/signin");
+        console.error("Error fetching profile:", err)
+        router.push("/signin")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchProfile();
-  }, [router]);
+    fetchProfile()
+  }, [hasHydrated, router, setUser]) // ✅ no "user" dependency
 
-  // ✅ Handle delete account
+  // ✅ Delete account
   const handleDeleteAccount = async () => {
-    const confirmed = confirm("⚠️ Are you sure you want to permanently delete your account?");
-    if (!confirmed) return;
+    const confirmed = confirm("⚠️ Are you sure you want to permanently delete your account?")
+    if (!confirmed) return
 
     try {
-      setDeleting(true);
-
-      const token = localStorage.getItem("qopchiq_token");
-      if (!token) {
-        alert("You must be signed in to delete your account.");
-        router.push("/signin");
-        return;
+      setDeleting(true)
+      if (!user?.token) {
+        alert("You must be signed in to delete your account.")
+        router.push("/signin")
+        return
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.delete("/api/users/me")
+      const data = res.data
 
-      const data = await res.json();
-
-      if (!res.ok || data.success === false) {
-        throw new Error(data.message || "Failed to delete account");
+      if (!res.status.toString().startsWith("2") || data.success === false) {
+        throw new Error(data.message || "Failed to delete account")
       }
 
-      // 🧹 Clear token from localStorage
-      localStorage.removeItem("qopchiq_token");
-
-      alert("✅ Your account has been deleted successfully.");
-      router.push("/signin");
+      clearAll() // ✅ Clear Zustand & localStorage
+      alert("✅ Your account has been deleted successfully.")
+      router.push("/signin")
     } catch (err) {
-      console.error("Delete error:", err);
-      alert("❌ Failed to delete account. Please try again.");
+      console.error("Delete error:", err)
+      alert("❌ Failed to delete account. Please try again.")
     } finally {
-      setDeleting(false);
+      setDeleting(false)
     }
-  };
+  }
 
-  if (loading) {
+  if (!hasHydrated || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <p className="text-gray-500">Loading profile...</p>
       </div>
-    );
+    )
   }
 
-  if (!userData) return null;
+  if (!user) return null
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -115,10 +108,10 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-center mb-2">{userData.name}</h2>
+        <h2 className="text-2xl font-bold text-center mb-2">{user.name}</h2>
 
         <div className="flex justify-center items-center mb-8 text-sm text-gray-500">
-          {userData.isVerified ? (
+          {user.isVerified ? (
             <div className="flex items-center gap-1 text-green-600">
               <ShieldCheck className="w-4 h-4" />
               Verified
@@ -136,20 +129,12 @@ export default function ProfilePage() {
           <div className="space-y-4">
             <div className="border-b border-gray-100 pb-3">
               <p className="text-sm text-gray-600 mb-1">Name</p>
-              <p className="text-base font-medium">{userData.name || "Not set"}</p>
+              <p className="text-base font-medium">{user.name || "Not set"}</p>
             </div>
 
             <div className="border-b border-gray-100 pb-3">
               <p className="text-sm text-gray-600 mb-1">Email*</p>
-              <p className="text-base font-medium">{userData.email || "Not provided"}</p>
-            </div>
-
-            <div className="border-b border-gray-100 pb-3">
-              <p className="text-sm text-gray-600 mb-1">Phone</p>
-              <div className="flex gap-2">
-                <p className="text-base font-medium text-gray-400">+998</p>
-                <p className="text-base font-medium">{userData.phone || "not set"}</p>
-              </div>
+              <p className="text-base font-medium">{user.email || "Not provided"}</p>
             </div>
           </div>
         </div>
@@ -174,5 +159,5 @@ export default function ProfilePage() {
         </Button>
       </div>
     </div>
-  );
+  )
 }

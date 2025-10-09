@@ -1,76 +1,65 @@
 "use client"
 
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios"
+import axios, { AxiosError } from "axios"
+import { useAppStore } from "@/store/store"
 import type { AuthResponse, LoginCredentials, SignUpCredentials } from "@/types/types"
 
 // ===========================
-// Constants
+// Token Service
 // ===========================
 
-const TOKEN_KEY = "qopchiq_token" as const
+export const tokenService = {
+  KEY: "qopchiq_token",
+
+  get: (): string | null => {
+    if (typeof window === "undefined") return null
+    return localStorage.getItem(tokenService.KEY)
+  },
+
+  set: (token: string) => {
+    if (typeof window === "undefined") return
+    localStorage.setItem(tokenService.KEY, token)
+  },
+
+  remove: () => {
+    if (typeof window === "undefined") return
+    localStorage.removeItem(tokenService.KEY)
+  },
+}
+
+// ===========================
+// API Setup
+// ===========================
+
 const API_ENDPOINTS = {
   LOGIN: "/api/auth/login",
   SIGNUP: "/api/auth/signup",
 } as const
 
-// ===========================
-// Axios Instance
-// ===========================
-
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  timeout: 10000, // 10 second timeout
+  headers: { "Content-Type": "application/json" },
+  timeout: 10000,
 })
 
-// ===========================
-// Token Management
-// ===========================
-
-export const tokenService = {
-  get: (): string | null => {
-    if (typeof window === "undefined") return null
-    return localStorage.getItem(TOKEN_KEY)
-  },
-  set: (token: string): void => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(TOKEN_KEY, token)
-    }
-  },
-  remove: (): void => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(TOKEN_KEY)
-    }
-  },
-}
-
-// ===========================
-// Interceptors
-// ===========================
-
+// ✅ Attach token before each request
 api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  (config) => {
     const token = tokenService.get()
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
+    if (token && config.headers) config.headers.Authorization = `Bearer ${token}`
     return config
   },
   (error) => Promise.reject(error)
 )
 
+// ✅ Handle unauthorized responses
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    // Handle 401 unauthorized
     if (error.response?.status === 401) {
       tokenService.remove()
-      // Optionally redirect to login
-      if (typeof window !== "undefined") {
-        window.location.href = "/signin"
-      }
+      useAppStore.getState().clearAll()
+      if (typeof window !== "undefined") window.location.href = "/signin"
     }
     return Promise.reject(error)
   }
@@ -80,57 +69,41 @@ api.interceptors.response.use(
 // Error Handling
 // ===========================
 
-interface ApiError {
-  message: string
-  statusCode?: number
-}
-
 const handleError = (error: unknown): never => {
   if (axios.isAxiosError(error)) {
-    // Extract error message from response
-    const errorMessage = 
-      error.response?.data?.message || 
+    const message =
+      error.response?.data?.message ||
       error.response?.data?.error ||
-      error.message || 
+      error.message ||
       "An unexpected error occurred"
-    
-    const apiError: ApiError = {
-      message: errorMessage,
-      statusCode: error.response?.status,
-    }
-    
-    // Create error with proper message
-    const err = new Error(apiError.message)
-    throw err
+    throw new Error(message)
   }
-  
-  if (error instanceof Error) {
-    throw error
-  }
-  
+
+  if (error instanceof Error) throw error
   throw new Error("An unknown error occurred")
 }
 
 // ===========================
-// API Methods
+// Auth API
 // ===========================
 
 export const authApi = {
   /**
-   * Login user with email and password
+   * 🔐 Login
    */
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
-      const { data } = await api.post<AuthResponse>(
-        API_ENDPOINTS.LOGIN,
-        credentials
-      )
-      
-      // Automatically store token if present
-      if (data.accessToken) {
-        tokenService.set(data.accessToken)
-      }
-      
+      const { data } = await api.post<AuthResponse>(API_ENDPOINTS.LOGIN, credentials)
+
+      if (data.accessToken) tokenService.set(data.accessToken)
+
+      const { setUser } = useAppStore.getState()
+      setUser({
+        name: data.user?.name ?? "User",
+        email: data.user?.email ?? "",
+        isVerified: data.user?.isVerified ?? false,
+      })
+
       return data
     } catch (error) {
       return handleError(error)
@@ -138,20 +111,21 @@ export const authApi = {
   },
 
   /**
-   * Register new user
+   * 🆕 Register
    */
   signUp: async (credentials: SignUpCredentials): Promise<AuthResponse> => {
     try {
-      const { data } = await api.post<AuthResponse>(
-        API_ENDPOINTS.SIGNUP,
-        credentials
-      )
-      
-      // Automatically store token if present
-      if (data.accessToken) {
-        tokenService.set(data.accessToken)
-      }
-      
+      const { data } = await api.post<AuthResponse>(API_ENDPOINTS.SIGNUP, credentials)
+
+      if (data.accessToken) tokenService.set(data.accessToken)
+
+      const { setUser } = useAppStore.getState()
+      setUser({
+        name: data.user?.name ?? "User",
+        email: data.user?.email ?? "",
+        isVerified: data.user?.isVerified ?? false,
+      })
+
       return data
     } catch (error) {
       return handleError(error)
@@ -159,13 +133,10 @@ export const authApi = {
   },
 
   /**
-   * Logout user (client-side only)
+   * 🚪 Logout
    */
   logout: (): void => {
     tokenService.remove()
+    useAppStore.getState().clearAll()
   },
 }
-
-// Legacy exports for backward compatibility
-export const loginUser = authApi.login
-export const signUpUser = authApi.signUp

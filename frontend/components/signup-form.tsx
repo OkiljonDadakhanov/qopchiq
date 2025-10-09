@@ -175,11 +175,7 @@ export function SignUpForm() {
             .
           </label>
         </div>
-        {showTermsWarning && (
-          <p className="text-xs text-red-500 ml-8">
-            Please agree before continuing.
-          </p>
-        )}
+        
       </div>
 
       <Button

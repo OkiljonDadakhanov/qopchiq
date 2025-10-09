@@ -10,10 +10,12 @@ export interface ApiResponse {
 export interface AuthResponse extends ApiResponse {
   accessToken?: string
   user?: {
-    name: string
-    email: string
+    name?: string
+    email?: string
+    isVerified?: boolean
   }
 }
+
 
 // ===========================
 // User & Auth Types
@@ -59,3 +61,4 @@ export interface FormFieldProps {
   required?: boolean
   icon?: React.ReactNode
 }
+
