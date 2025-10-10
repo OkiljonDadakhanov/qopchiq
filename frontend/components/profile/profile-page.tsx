@@ -18,7 +18,7 @@ export default function ProfilePage() {
 
   const { data, status, error } = useFetchProfile()
 
-  console.log("Profile dataaaaa:", data)
+
 
   // ✅ Extract user safely from response
   const profile = data
