@@ -1,6 +1,7 @@
 import { User } from "../models/user.model.js";
 import BaseError from "../errors/base.error.js";
 import UserDto from "../dtos/user.dto.js";
+import storage from "./storage/storageFactory.js";
 
 class UserService {
 	async getMe(userId) {
@@ -31,6 +32,25 @@ class UserService {
 		const user = await User.findByIdAndDelete(userId);
 		if (!user) throw BaseError.NotFoundError("User not found");
 		return { success: true };
+	}
+
+	async updateAvatar(userId, file) {
+		if (!file) throw BaseError.BadRequestError("File is required");
+		const user = await User.findById(userId);
+		if (!user) throw BaseError.NotFoundError("User not found");
+
+		const uploaded = await storage.uploadFile(file, "avatars");
+		const prevFileId = user.avatarFileId;
+
+		user.avatar = uploaded.url;
+		user.avatarFileId = uploaded.id;
+		await user.save();
+
+		if (prevFileId) {
+			storage.deleteFile(prevFileId).catch(() => {});
+		}
+
+		return new UserDto(user);
 	}
 }
 
