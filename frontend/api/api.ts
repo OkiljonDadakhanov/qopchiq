@@ -4,28 +4,7 @@ import axios, { AxiosError } from "axios"
 import { useAppStore } from "@/store/store"
 import type { AuthResponse, LoginCredentials, SignUpCredentials } from "@/types/types"
 
-// ===========================
-// Token Service
-// ===========================
-
-export const tokenService = {
-  KEY: "qopchiq_token",
-
-  get: (): string | null => {
-    if (typeof window === "undefined") return null
-    return localStorage.getItem(tokenService.KEY)
-  },
-
-  set: (token: string) => {
-    if (typeof window === "undefined") return
-    localStorage.setItem(tokenService.KEY, token)
-  },
-
-  remove: () => {
-    if (typeof window === "undefined") return
-    localStorage.removeItem(tokenService.KEY)
-  },
-}
+import { tokenService } from './tokenService'
 
 // ===========================
 // API Setup

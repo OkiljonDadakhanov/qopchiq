@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { FormField } from "@/components/form-field"
 import { useCustomToast } from "@/components/custom-toast"
 import { useAppStore } from "@/store/store"
-import { authApi } from "@/api/api"
+import { useRegister } from "@/hooks/auth"
 import type { SignUpCredentials } from "@/types/types"
 
 
@@ -45,13 +45,16 @@ export function SignUpForm() {
   const toast = useCustomToast()
   const setUser = useAppStore((state) => state.setUser)
 
+  const registerMutation = useRegister()
+
   const [formData, setFormData] = useState<SignUpFormData>({
     name: "",
     email: "",
     password: "",
     agreedToTerms: false,
   })
-  const [isLoading, setIsLoading] = useState(false)
+  // use mutation loading state
+  const isLoading = registerMutation.status === 'pending'
   const [showTermsWarning, setShowTermsWarning] = useState(false)
 
  
@@ -82,18 +85,17 @@ export function SignUpForm() {
     }
 
     setShowTermsWarning(false)
-    setIsLoading(true)
 
+    // use React Query mutation
     try {
-      const { agreedToTerms, ...credentials } = formData
-      const data = await authApi.signUp(credentials)
+      const { agreedToTerms, name, email, password } = formData
+      const credentials: SignUpCredentials = { name, email, password }
+      const data = await registerMutation.mutateAsync(credentials)
 
-    
       if (data.success === false || !data?.accessToken) {
         throw new Error(data?.message || "Signup failed")
       }
 
-    
       setUser({
         name: formData.name,
         email: formData.email,
@@ -110,8 +112,6 @@ export function SignUpForm() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Signup failed"
       toast.error(TOAST_MESSAGES.ERROR.title, message)
-    } finally {
-      setIsLoading(false)
     }
   }
 

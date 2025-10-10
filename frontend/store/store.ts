@@ -1,20 +1,25 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { create } from "zustand"
-import { persist, createJSONStorage } from "zustand/middleware"
+import { persist } from "zustand/middleware"
 import type { AppState, User } from "@/types/types"
 import type { UserStats } from "@/types/more"
 
 // ===========================
-// Extended Store with Stats
+// Types
 // ===========================
 
 interface ExtendedAppState extends AppState {
   userStats: UserStats
+  setUser: (user: User) => void
+  clearUser: () => void
   setUserStats: (stats: UserStats) => void
   clearUserStats: () => void
-  clearAll: () => void // ✅ NEW helper to fully clear persisted data
+  clearAll: () => void
+  // ✅ Token management methods
+  setToken: (token: string) => void
+  getToken: () => string | null
+  clearToken: () => void
 }
 
 // ===========================
@@ -33,63 +38,55 @@ const DEFAULT_STATS: UserStats = {
 
 export const useAppStore = create<ExtendedAppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       userStats: DEFAULT_STATS,
 
-      setUser: (user: User) => set({ user }),
+      setUser: (user) => set({ user }),
+      clearUser: () => set({ user: null }),
 
-      clearUser: () => set({ user: null, userStats: DEFAULT_STATS }),
-
-      setUserStats: (stats: UserStats) => set({ userStats: stats }),
-
+      setUserStats: (stats) => set({ userStats: stats }),
       clearUserStats: () => set({ userStats: DEFAULT_STATS }),
 
-      // ✅ Full reset: clears store + removes localStorage key
-      clearAll: () => {
-        set({ user: null, userStats: DEFAULT_STATS })
-        localStorage.removeItem("qopchiq-storage")
+      clearAll: () => set({ user: null, userStats: DEFAULT_STATS }),
+
+      // ✅ Token management - only store in Zustand, not localStorage
+      setToken: (token: string) => {
+        const currentUser = get().user
+        if (currentUser) {
+          set({ user: { ...currentUser, token } })
+        }
+      },
+      
+      getToken: () => {
+        const currentUser = get().user
+        return currentUser?.token || null
+      },
+      
+      clearToken: () => {
+        const currentUser = get().user
+        if (currentUser) {
+          set({ user: { ...currentUser, token: undefined } })
+        }
       },
     }),
     {
-      name: "qopchiq-storage",
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        user: state.user
-          ? {
-            
-              token: state.user.token,
-        
-            }
-          : null,
-        userStats: state.userStats,
-      }),
+      name: 'qopchiq-store',
+      partialize: (state) => ({ user: state.user }),
     }
   )
 )
 
 // ===========================
-// Hydration Helper
+// Selectors (for convenience)
 // ===========================
 
-export const useHasHydrated = () => {
-  const [hydrated, setHydrated] = useState(false)
-
-  useEffect(() => {
-    const unsub = useAppStore.persist.onFinishHydration(() => setHydrated(true))
-    setHydrated(useAppStore.persist.hasHydrated())
-    return () => unsub()
-  }, [])
-
-  return hydrated
-}
-
-// ===========================
-// Selectors
-// ===========================
-
-export const useUser = () => useAppStore((state) => state.user)
-export const useIsAuthenticated = () => useAppStore((state) => !!state.user)
-export const useUserEmail = () => useAppStore((state) => state.user?.email)
-export const useUserName = () => useAppStore((state) => state.user?.name)
-export const useUserStats = () => useAppStore((state) => state.userStats)
+export const useUser = () => useAppStore((s) => s.user)
+export const useUserEmail = () => useAppStore((s) => s.user?.email)
+export const useUserName = () => useAppStore((s) => s.user?.name)
+export const useUserStats = () => useAppStore((s) => s.userStats)
+export const useIsAuthenticated = () => useAppStore((s) => !!s.user)
+// ✅ Token selectors
+export const useToken = () => useAppStore((s) => s.getToken())
+export const useSetToken = () => useAppStore((s) => s.setToken)
+export const useClearToken = () => useAppStore((s) => s.clearToken)

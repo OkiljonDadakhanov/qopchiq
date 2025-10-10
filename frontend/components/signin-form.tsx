@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/form-field"
 import { useCustomToast } from "@/components/custom-toast"
 import { useAppStore } from "@/store/store"
-import { authApi } from "@/api/api"
+import { useLogin } from "@/hooks/auth"
 import type { LoginCredentials } from "@/types/types"
 
 // ===========================
@@ -45,11 +45,13 @@ export function SignInForm() {
   const toast = useCustomToast()
   const setUser = useAppStore((state) => state.setUser)
 
+  const loginMutation = useLogin()
+
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: "",
     password: "",
   })
-  const [isLoading, setIsLoading] = useState(false)
+  const isLoading = loginMutation.status === 'pending'
 
   // ===========================
   // Handlers
@@ -61,17 +63,14 @@ export function SignInForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setIsLoading(true)
-
     try {
-      const data = await authApi.login(credentials)
+      const data = await loginMutation.mutateAsync(credentials)
 
       // Check for both success flag and token
       if (data.success === false || !data?.accessToken) {
         throw new Error(data?.message || "Invalid credentials")
       }
 
-      // Update store with user data
       setUser({
         name: data.user?.name || "User",
         email: data.user?.email || credentials.email,
@@ -97,8 +96,6 @@ export function SignInForm() {
       } else {
         toast.error(TOAST_MESSAGES.ERROR.title, message)
       }
-    } finally {
-      setIsLoading(false)
     }
   }
 

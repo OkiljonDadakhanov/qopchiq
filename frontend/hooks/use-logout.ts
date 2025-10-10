@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useAppStore } from "@/store/store"
-import { tokenService } from "@/api/api"
+import { tokenService } from "@/api/tokenService"
 import { useCustomToast } from "@/components/custom-toast"
 import { MORE_TOAST_MESSAGES, MORE_ROUTES } from "@/constants/more"
 

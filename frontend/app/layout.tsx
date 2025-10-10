@@ -6,6 +6,7 @@ import "./globals.css";
 import MobileOnlyNotice from "@/components/mobile-banner";
 import BottomNavWrapper from "@/components/bottom-navigation-wrapper";
 import { Toaster } from "@/components/ui/toaster"
+import Providers from './providers'
 
 export const metadata: Metadata = {
   title: "qopchiq",
@@ -20,11 +21,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} min-h-screen bg-white`}>
         <MobileOnlyNotice />
-        {children}
-        <Toaster />
-        <Analytics />
-        {/* ✅ Wrapper decides when to show the BottomNav */}
-        <BottomNavWrapper />
+        <Providers>
+          {children}
+          <Toaster />
+          <Analytics />
+          {/* ✅ Wrapper decides when to show the BottomNav */}
+          <BottomNavWrapper />
+        </Providers>
       </body>
     </html>
   );

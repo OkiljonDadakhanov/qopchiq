@@ -7,46 +7,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail } from "lucide-react";
 import { useCustomToast } from "@/components/custom-toast";
+import { useForgotPassword } from "@/hooks/auth"
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
+  const forgotMutation = useForgotPassword()
+  const loading = forgotMutation.status === 'pending'
   const toast = useCustomToast();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        }
-      );
+      await forgotMutation.mutateAsync({ email })
 
-      const data = await res.json();
-
-      if (!res.ok || data.success === false) {
-        toast.error("Request Failed", data.message || "Email not found.");
-        setLoading(false);
-        return;
-      }
-
-      toast.success("Email Sent", "Check your inbox for password reset instructions.");
-
-      // ✅ Save email temporarily (so CheckEmail page can show it)
-      sessionStorage.setItem("resetEmail", email);
-
-      // ✅ Redirect to Check Email page
-      router.push("/check-email");
+      toast.success("Email Sent", "Check your inbox for password reset instructions.")
+      sessionStorage.setItem("resetEmail", email)
+      router.push("/check-email")
     } catch (err: any) {
-      toast.error("Error", err.message || "Something went wrong.");
-    } finally {
-      setLoading(false);
+      const message = err instanceof Error ? err.message : 'Something went wrong.'
+      toast.error("Request Failed", message)
     }
   };
 
