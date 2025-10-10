@@ -140,7 +140,7 @@ class AuthService {
 		user.resetPasswordExpiresAt = Date.now() + 60 * 60 * 1000;
 		await user.save();
 
-		await MailService.sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/:${resetToken}`);
+		await MailService.sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
 		return { success: true };
 	}
 
