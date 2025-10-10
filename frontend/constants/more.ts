@@ -15,6 +15,7 @@ export const MORE_ROUTES = {
   CONTACT: "/contact",
   JOIN_SELLER: "/join-seller",
   SIGNIN: "/signin",
+  SIGNUP: "/signup",
 } as const
 
 // ===========================

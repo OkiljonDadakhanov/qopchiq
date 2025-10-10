@@ -50,7 +50,7 @@ export default function ProfilePage() {
               try {
                 await deleteUserMutation.mutateAsync()
                 customToast.success("Account Deleted", "Your account has been successfully removed.")
-                router.push("/signin")
+                router.push("/")
               } catch (err: any) {
                 console.error("Delete error:", err)
                 customToast.error("Delete Failed", err.message || "Could not delete your account. Please try again.")
