@@ -1,14 +1,13 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import BaseError from "../errors/base.error.js";
 import AuthService from "../services/auth.service.js";
 import { setRefreshTokenCookie } from "../utils/cookies.js";
 
 export const signup = async (req, res, next) => {
 	try {
-		const { email, password, name } = req.body;
-		const data = await AuthService.signup(email, password, name);
+		const { email, password, name, phone, avatar } = req.body;
+		const data = await AuthService.signup(email, password, name, phone, avatar);
 		setRefreshTokenCookie(res, data.refreshToken);
 		return res.status(201).json({ success: true, message: "User created successfully", user: data.user, accessToken: data.accessToken });
 	} catch (error) {
