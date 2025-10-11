@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label"
 import { useAppStore } from "@/store/store"
 import { useCustomToast } from "@/components/custom-toast"
 import { FormField } from "@/components/form-field"
-import { useUpdateProfile, useFetchProfile } from "@/hooks/profile"
+import { useUpdateProfile, useFetchProfile, useUpdateAvatar } from "@/hooks/profile"
+import { useUploadFile } from "@/hooks/use-upload"
 import type { UpdateProfileData } from "@/types/profile"
 
 export default function EditProfileForm() {
@@ -20,6 +21,8 @@ export default function EditProfileForm() {
   const { user, setUser } = useAppStore()
   const { data: profile } = useFetchProfile()
   const updateProfileMutation = useUpdateProfile()
+  const updateAvatarMutation = useUpdateAvatar()
+  const uploadFileMutation = useUploadFile()
   const toast = useCustomToast()
 
   const [formData, setFormData] = useState<UpdateProfileData>({
@@ -47,47 +50,61 @@ export default function EditProfileForm() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  // ✅ Avatar upload preview
+  // ✅ Avatar upload preview and upload
   const handleAvatarClick = () => fileInputRef.current?.click()
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setAvatarFile(file)
-      const previewURL = URL.createObjectURL(file)
-      setAvatarPreview(previewURL)
-    }
+  // Avatar file selection only
+const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    setAvatarFile(file);
+    const previewURL = URL.createObjectURL(file);
+    setAvatarPreview(previewURL);
   }
+};
+
 
   // ✅ Save handler using React Query mutation
   const handleSave = async () => {
     try {
-      // ✅ Validate form data
-      if (!formData.name?.trim()) {
-        toast.error("Validation Error", "Name is required.")
-        return
+      if (!formData.name?.trim() || !formData.email?.trim()) {
+        toast.error("Validation Error", "Name and Email are required.");
+        return;
       }
-      
-      if (!formData.email?.trim()) {
-        toast.error("Validation Error", "Email is required.")
-        return
+  
+      let avatarUrl = profile?.avatar;
+  
+      // ✅ Upload avatar only if a new file is selected
+      if (avatarFile) {
+        const fileForm = new FormData();
+        fileForm.append("file", avatarFile);
+        avatarUrl = await uploadFileMutation.mutateAsync(fileForm);
       }
-
-      // ✅ Email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(formData.email)) {
-        toast.error("Validation Error", "Please enter a valid email address.")
-        return
-      }
-
-      await updateProfileMutation.mutateAsync(formData)
-      
-      toast.success("Profile Updated", "Your profile has been updated successfully.")
-      router.push("/profile")
+  
+      // ✅ Include avatar & phone in the update payload
+      const updatedPayload: UpdateProfileData = {
+        ...formData,
+        avatar: avatarUrl,
+      };
+  
+      const updatedProfile = await updateProfileMutation.mutateAsync(updatedPayload);
+  
+      // ✅ Update Zustand immediately (persists to localStorage)
+      setUser({
+        ...user,
+        name: updatedProfile.name,
+        email: updatedProfile.email,
+        phone: updatedProfile.phone,
+        avatar: updatedProfile.avatar,
+      });
+  
+      toast.success("Profile Updated", "Your profile has been updated successfully.");
+      router.push("/profile");
     } catch (err: any) {
-      console.error("Profile update error:", err)
-      toast.error("Update Failed", err.message || "Failed to update profile. Please try again.")
+      console.error("Profile update error:", err);
+      toast.error("Update Failed", err.message || "Failed to update profile. Please try again.");
     }
-  }
+  };
+  
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -113,6 +130,14 @@ export default function EditProfileForm() {
                   height={128}
                   className="object-cover w-full h-full"
                 />
+              ) : profile?.avatar ? (
+                <Image
+                  src={profile.avatar}
+                  alt="Current Avatar"
+                  width={128}
+                  height={128}
+                  className="object-cover w-full h-full"
+                />
               ) : (
                 <User className="w-16 h-16 text-[#00B14F]" />
               )}
@@ -121,7 +146,8 @@ export default function EditProfileForm() {
             <button
               type="button"
               onClick={handleAvatarClick}
-              className="absolute bottom-0 right-0 w-10 h-10 bg-[#00B14F] rounded-full flex items-center justify-center shadow-md hover:bg-[#009940] transition"
+              disabled={uploadFileMutation.isPending || updateAvatarMutation.isPending}
+              className="absolute bottom-0 right-0 w-10 h-10 bg-[#00B14F] rounded-full flex items-center justify-center shadow-md hover:bg-[#009940] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Camera className="w-5 h-5 text-white" />
             </button>
@@ -132,6 +158,7 @@ export default function EditProfileForm() {
               accept="image/*"
               className="hidden"
               onChange={handleAvatarChange}
+              disabled={uploadFileMutation.isPending || updateAvatarMutation.isPending}
             />
           </div>
         </div>
@@ -164,24 +191,29 @@ export default function EditProfileForm() {
               htmlFor="phone"
               className="text-sm font-medium text-gray-700 mb-2 block"
             >
-              Phone
+              Phone Number
             </Label>
             <div className="flex gap-2">
               <Input
-                placeholder="+998"
-                className="h-12 rounded-lg border-gray-300 w-24 text-center"
+                value="+998"
+                className="h-12 rounded-lg border-gray-300 w-24 text-center bg-gray-50"
                 disabled
               />
-              <FormField
-                id="phone"
-                label=""
-                type="tel"
-                placeholder="Enter phone number"
-                value={formData.phone ?? ""}
-                onChange={(e) => handleChange("phone", e.target.value)}
-                icon={<Phone className="w-4 h-4" />}
-              />
+              <div className="flex-1 relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="90 123 45 67"
+                  value={formData.phone ?? ""}
+                  onChange={(e) => handleChange("phone", e.target.value)}
+                  className="h-12 rounded-lg border-gray-300 pl-10"
+                />
+              </div>
             </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Enter your phone number without the country code (+998)
+            </p>
           </div>
         </div>
       </div>
@@ -190,10 +222,10 @@ export default function EditProfileForm() {
       <div className="fixed bottom-0 left-0 right-0 px-6 py-5 bg-white border-t border-gray-100 shadow-lg">
         <Button
           onClick={handleSave}
-          disabled={updateProfileMutation.isPending}
+          disabled={updateProfileMutation.isPending || uploadFileMutation.isPending || updateAvatarMutation.isPending}
           className="w-full h-14 bg-[#00B14F] hover:bg-[#009940] text-white rounded-2xl text-base font-semibold"
         >
-          {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+          {updateProfileMutation.isPending || uploadFileMutation.isPending || updateAvatarMutation.isPending ? "Saving..." : "Save Changes"}
         </Button>
       </div>
     </div>

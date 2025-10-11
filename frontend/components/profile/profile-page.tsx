@@ -16,7 +16,12 @@ export default function ProfilePage() {
   const customToast = useCustomToast()
   const { toast } = useToast()
 
-  const { data, status, error } = useFetchProfile()
+  const { data, status, error, refetch } = useFetchProfile()
+
+  // ✅ Refetch profile data on component mount to ensure fresh data
+  useEffect(() => {
+    refetch()
+  }, [refetch])
 
 
 
@@ -31,9 +36,32 @@ export default function ProfilePage() {
         email: profile.email,
         token: user?.token, // ✅ Token is already in Zustand store
         isVerified: profile.isVerified ?? false,
+        phone: profile.phone, // ✅ Include phone number
+        avatar: profile.avatar, // ✅ Include avatar
       })
     }
   }, [status, profile, setUser, user?.token])
+
+  // ✅ Refetch profile data when page becomes visible (user navigates back)
+  useEffect(() => {
+    const handleFocus = () => {
+      refetch()
+    }
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refetch()
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [refetch])
 
   const handleDelete = () => {
     // ✅ Show a confirmation toast with action buttons
@@ -113,8 +141,16 @@ export default function ProfilePage() {
       {/* Content */}
       <div className="flex-1 px-6 py-8">
         <div className="flex justify-center mb-8">
-          <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center">
-            <User className="w-16 h-16 text-[#00B14F]" />
+          <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
+            {profile?.avatar?.url ? (
+              <img
+                src={profile.avatar.url}
+                alt="Profile Avatar"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="w-16 h-16 text-[#00B14F]" />
+            )}
           </div>
         </div>
 
@@ -146,6 +182,13 @@ export default function ProfilePage() {
               <p className="text-sm text-gray-600 mb-1">Email*</p>
               <p className="text-base font-medium">{profile?.email || "Not provided"}</p>
             </div>
+
+            {profile?.phone && (
+              <div className="border-b border-gray-100 pb-3">
+                <p className="text-sm text-gray-600 mb-1">Phone</p>
+                <p className="text-base font-medium">+998 {profile.phone}</p>
+              </div>
+            )}
 
             <div className="border-b border-gray-100 pb-3">
               <p className="text-sm text-gray-600 mb-1">Account created</p>

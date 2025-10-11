@@ -1,5 +1,6 @@
 import authClient from '@/api/authClient';
-import type { UserProfile, UpdateProfileData, ChangePasswordData } from '@/types/profile';
+import { uploadAvatar } from '@/api/services/upload';
+import type { UserProfile, UpdateProfileData, ChangePasswordData, UpdateAvatar } from '@/types/profile';
 
 // ✅ Professional error handling for profile services
 const handleProfileError = (error: any) => {
@@ -17,10 +18,52 @@ export const fetchUserProfile = async (): Promise<UserProfile> => {
       throw new Error('No profile data received');
     }
     
-    return payload as UserProfile;
+    // ✅ Map API field names to expected field names
+    const mappedProfile = {
+      ...payload,
+      phone: payload.phoneNumber || payload.phone, // Handle both phoneNumber and phone
+      avatar: payload.avatar || null, // Ensure avatar is properly handled
+    };
+    
+    return mappedProfile as UserProfile;
   } catch (error) {
     handleProfileError(error);
     throw error; // Re-throw the error to maintain the Promise rejection
+  }
+};
+
+// ✅ Update avatar with two-step process: upload file then update user
+export const updateAvatar = async (file: File): Promise<UserProfile> => {
+  try {
+    // Step 1: Upload the file
+    const uploadResponse = await uploadAvatar(file);
+    
+    // Step 2: Update user profile with avatar data
+    const avatarData = {
+      avatar: {
+        id: uploadResponse.file.id,
+        url: uploadResponse.file.url
+      }
+    };
+    
+    const { data } = await authClient.patch('/api/users/me/avatar', avatarData);
+    const payloadData = data?.user ?? data;
+    
+    if (!payloadData) {
+      throw new Error('No updated profile data received');
+    }
+    
+    // ✅ Map API field names to expected field names
+    const mappedProfile = {
+      ...payloadData,
+      phone: payloadData.phoneNumber || payloadData.phone, // Handle both phoneNumber and phone
+      avatar: payloadData.avatar || null, // Ensure avatar is properly handled
+    };
+    
+    return mappedProfile as UserProfile;
+  } catch (error) {
+    handleProfileError(error);
+    throw error;
   }
 };
 
@@ -33,7 +76,14 @@ export const updateUserProfile = async (payload: UpdateProfileData): Promise<Use
       throw new Error('No updated profile data received');
     }
     
-    return payloadData as UserProfile;
+    // ✅ Map API field names to expected field names
+    const mappedProfile = {
+      ...payloadData,
+      phone: payloadData.phoneNumber || payloadData.phone, // Handle both phoneNumber and phone
+      avatar: payloadData.avatar || null, // Ensure avatar is properly handled
+    };
+    
+    return mappedProfile as UserProfile;
   } catch (error) {
     handleProfileError(error);
     throw error; // Re-throw the error to maintain the Promise rejection
@@ -58,6 +108,35 @@ export const deleteUser = async (): Promise<void> => {
     handleProfileError(error);
     throw error; // Re-throw the error to maintain the Promise rejection
   }
+};
+
+// ✅ Update single field (avatar, phone, etc.)
+export const updateUserField = async (key: string, value: string): Promise<UserProfile> => {
+  try {
+    const { data } = await authClient.patch(`/api/users/me/${key}`, { [key]: value });
+    const payloadData = data?.user ?? data;
+    
+    if (!payloadData) {
+      throw new Error('No updated profile data received');
+    }
+    
+    // ✅ Map API field names to expected field names
+    const mappedProfile = {
+      ...payloadData,
+      phone: payloadData.phoneNumber || payloadData.phone, // Handle both phoneNumber and phone
+      avatar: payloadData.avatar || null, // Ensure avatar is properly handled
+    };
+    
+    return mappedProfile as UserProfile;
+  } catch (error) {
+    handleProfileError(error);
+    throw error;
+  }
+};
+
+// ✅ Update phone number specifically  
+export const updatePhone = async (phone: string): Promise<UserProfile> => {
+  return updateUserField('phone', phone);
 };
 
 export default {

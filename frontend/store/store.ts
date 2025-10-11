@@ -10,14 +10,18 @@ import type { UserStats } from "@/types/more"
 // ===========================
 
 interface ExtendedAppState extends AppState {
+  // ✅ Stats
   userStats: UserStats
+  setUserStats: (stats: UserStats) => void
+  clearUserStats: () => void
+
+  // ✅ Hydration
   hasHydrated: boolean
   setHasHydrated: (value: boolean) => void
 
-  setUser: (user: User) => void
+  // ✅ User management
+  setUser: (user: Partial<User>) => void
   clearUser: () => void
-  setUserStats: (stats: UserStats) => void
-  clearUserStats: () => void
   clearAll: () => void
 
   // ✅ Token helpers
@@ -43,17 +47,28 @@ const DEFAULT_STATS: UserStats = {
 export const useAppStore = create<ExtendedAppState>()(
   persist(
     (set, get) => ({
+      // ===================
+      // State
+      // ===================
       user: null,
       userStats: DEFAULT_STATS,
       hasHydrated: false,
 
+      // ===================
+      // Hydration
+      // ===================
       setHasHydrated: (value) => set({ hasHydrated: value }),
 
-      setUser: (user) => set({ user }),
-      clearUser: () => set({ user: null }),
+      // ===================
+      // User management
+      // ===================
+      setUser: (user) =>
+        set((state) => ({
+          // ✅ merge updates to preserve token or other fields
+          user: state.user ? { ...state.user, ...user } : user as User,
+        })),
 
-      setUserStats: (stats) => set({ userStats: stats }),
-      clearUserStats: () => set({ userStats: DEFAULT_STATS }),
+      clearUser: () => set({ user: null }),
 
       clearAll: () =>
         set({
@@ -61,27 +76,44 @@ export const useAppStore = create<ExtendedAppState>()(
           userStats: DEFAULT_STATS,
         }),
 
-      // ✅ Token management
-      setToken: (token: string) => {
+      // ===================
+      // Stats
+      // ===================
+      setUserStats: (stats) => set({ userStats: stats }),
+      clearUserStats: () => set({ userStats: DEFAULT_STATS }),
+
+      // ===================
+      // Token helpers
+      // ===================
+      setToken: (token) => {
         const currentUser = get().user
-        if (currentUser) set({ user: { ...currentUser, token } })
+        if (currentUser) {
+          set({ user: { ...currentUser, token } })
+        } else {
+          // ✅ create new user with token only (e.g., after login)
+          set({ user: { token } as User })
+        }
       },
 
       getToken: () => get().user?.token || null,
 
       clearToken: () => {
         const currentUser = get().user
-        if (currentUser) set({ user: { ...currentUser, token: undefined } })
+        if (currentUser) {
+          const { token, ...rest } = currentUser
+          set({ user: { ...rest, token: undefined } })
+        }
       },
     }),
     {
-      name: "qopchiq-store",
+      name: "qopchiq-store", // key in localStorage
       partialize: (state) => ({
+        // ✅ persist only minimal data
         user: state.user,
         userStats: state.userStats,
       }),
       onRehydrateStorage: () => (state) => {
-        // ✅ This runs after Zustand rehydrates localStorage
+        // ✅ runs after Zustand rehydrates from localStorage
         state?.setHasHydrated(true)
       },
     }
@@ -89,7 +121,7 @@ export const useAppStore = create<ExtendedAppState>()(
 )
 
 // ===========================
-// Selectors
+// Selectors (optional helpers)
 // ===========================
 
 export const useUser = () => useAppStore((s) => s.user)
@@ -100,7 +132,6 @@ export const useHasHydrated = () => useAppStore((s) => s.hasHydrated)
 export const useIsAuthenticated = () =>
   useAppStore((s) => !!s.user && !!s.user?.token)
 
-// ✅ Token helpers
 export const useToken = () => useAppStore((s) => s.getToken())
 export const useSetToken = () => useAppStore((s) => s.setToken)
 export const useClearToken = () => useAppStore((s) => s.clearToken)

@@ -3,11 +3,21 @@
 // ===============================
 import type { User } from './types'
 
+
 export interface UserProfile extends User {
   phone?: string
-  avatar?: string
+  phoneNumber?: string // API field name
   createdAt: string
   updatedAt: string
+  lastLogin?: string
+}
+
+// ===============================
+// Avatar Types
+// ===============================
+export interface AvatarData {
+  id: string
+  url: string
 }
 
 // ===============================
@@ -17,12 +27,20 @@ export interface UpdateProfileData {
   name?: string
   email?: string
   phone?: string
-  avatar?: string
+}
+
+export interface UpdateAvatar {
+  avatar: AvatarData
 }
 
 export interface ChangePasswordData {
   currentPassword: string
   newPassword: string
+}
+
+export interface AvatarUpdateResponse {
+  message: string
+  user: UserProfile
 }
 
 // ===============================

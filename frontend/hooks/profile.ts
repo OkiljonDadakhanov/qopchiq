@@ -4,6 +4,8 @@ import {
   fetchUserProfile,
   changeUserPassword,
   deleteUser,
+  updateAvatar,
+  updatePhone,
 } from "@/api/services/profile"
 import type {
   UserProfile,
@@ -26,8 +28,8 @@ export const useFetchProfile = () => {
     },
     enabled: typeof window !== "undefined" && !!user?.token,
     retry: 1,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 0, // Always consider data stale to ensure fresh fetches
+    gcTime: 1000 * 60 * 5, // 5 minutes
   })
 }
 
@@ -52,6 +54,7 @@ export const useUpdateProfile = () => {
       
       // ✅ Invalidate and refetch profile query
       qc.invalidateQueries({ queryKey: ["profile"] })
+      qc.refetchQueries({ queryKey: ["profile"] })
     },
     onError: (error) => {
       console.error("Profile update failed:", error)
@@ -78,6 +81,58 @@ export const useDeleteUser = () => {
     },
     onError: (error) => {
       console.error("User deletion failed:", error)
+    },
+  })
+}
+
+// ✅ Hook for updating avatar
+export const useUpdateAvatar = () => {
+  const qc = useQueryClient()
+  const { setUser, user } = useAppStore()
+  
+  return useMutation<UserProfile, Error, File>({
+    mutationFn: updateAvatar,
+    onSuccess: (updatedProfile) => {
+      // ✅ Update Zustand store with new avatar
+      if (user) {
+        setUser({
+          ...user,
+          avatar: updatedProfile.avatar,
+        })
+      }
+      
+      // ✅ Invalidate and refetch profile query
+      qc.invalidateQueries({ queryKey: ["profile"] })
+      qc.refetchQueries({ queryKey: ["profile"] })
+    },
+    onError: (error) => {
+      console.error("Avatar update failed:", error)
+    },
+  })
+}
+
+// ✅ Hook for updating phone number
+export const useUpdatePhone = () => {
+  const qc = useQueryClient()
+  const { setUser, user } = useAppStore()
+  
+  return useMutation<UserProfile, Error, string>({
+    mutationFn: updatePhone,
+    onSuccess: (updatedProfile) => {
+      // ✅ Update Zustand store with new phone
+      if (user) {
+        setUser({
+          ...user,
+          phone: updatedProfile.phone,
+        })
+      }
+      
+      // ✅ Invalidate and refetch profile query
+      qc.invalidateQueries({ queryKey: ["profile"] })
+      qc.refetchQueries({ queryKey: ["profile"] })
+    },
+    onError: (error) => {
+      console.error("Phone update failed:", error)
     },
   })
 }

@@ -40,7 +40,10 @@ export interface User {
   token?: string
   isVerified?: boolean
   phone?: string
-  avatar?: string
+  avatar?: {
+    id: string
+    url: string
+  } | null
   createdAt?: string
   updatedAt?: string
 }
