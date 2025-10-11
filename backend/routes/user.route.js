@@ -9,10 +9,12 @@ router.get("/me", authGuard, getMe);
 
 // Profil yangilash
 router.patch("/me", authGuard, updateProfile);
-router.patch("/me/:key", authGuard, updateField);
 
-// Avatar yangilash (URL bilan)
+// Avatar yangilash (URL bilan) - boshqa route'lardan oldin
 router.patch("/me/avatar", authGuard, updateAvatar);
+
+// Boshqa field'lar yangilash
+router.patch("/me/:key", authGuard, updateField);
 
 // Profil o'chirish
 router.delete("/me", authGuard, deleteMe);
