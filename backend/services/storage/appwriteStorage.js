@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
-import { Client, Storage, ID } from "node-appwrite";
+import { ID } from "node-appwrite";
+import FormData from "form-data";
+import axios from "axios";
 import FileStorage from "./fileStorage.js";
 
 export default class AppwriteStorage extends FileStorage {
@@ -13,11 +15,9 @@ export default class AppwriteStorage extends FileStorage {
 		if (!APPWRITE_BUCKET_ID) throw new Error("APPWRITE_BUCKET_ID is required");
 
 		this.bucketId = APPWRITE_BUCKET_ID;
-		this.client = new Client()
-			.setEndpoint(APPWRITE_ENDPOINT)
-			.setProject(APPWRITE_PROJECT_ID)
-			.setKey(APPWRITE_API_KEY);
-		this.storage = new Storage(this.client);
+		this.endpoint = APPWRITE_ENDPOINT;
+		this.projectId = APPWRITE_PROJECT_ID;
+		this.apiKey = APPWRITE_API_KEY;
 	}
 
 	async uploadFile(file, folder = "general") {
@@ -25,34 +25,67 @@ export default class AppwriteStorage extends FileStorage {
 			throw new Error("File not provided or invalid format");
 		}
 
-		const uploadsDir = path.join(process.cwd(), "uploads", folder);
-		if (!fs.existsSync(uploadsDir)) {
-			await fs.promises.mkdir(uploadsDir, { recursive: true });
-		}
-
-		const uniqueId = ID.unique();
-		const filename = `${Date.now()}_${file.originalname || "file"}`;
-		const filePath = path.join(uploadsDir, filename);
-
-		await fs.promises.writeFile(filePath, file.buffer);
-
 		try {
-			const created = await this.storage.createFile(this.bucketId, uniqueId, fs.createReadStream(filePath));
-			const url = this._buildViewUrl(created.$id);
+			const uploadsDir = path.join(process.cwd(), "uploads");
+			if (!fs.existsSync(uploadsDir)) {
+				await fs.promises.mkdir(uploadsDir, { recursive: true });
+			}
+
+			const uniqueId = ID.unique();
+			const filename = `${Date.now()}_${file.originalname || "file"}`;
+			const filePath = path.join(uploadsDir, filename);
+
+			// Vaqtinchalik saqlash
+			await fs.promises.writeFile(filePath, file.buffer);
+
+			const form = new FormData();
+			form.append("fileId", uniqueId);
+			form.append("file", fs.createReadStream(filePath));
+
+			const { data } = await axios.post(
+				`${this.endpoint}/storage/buckets/${this.bucketId}/files`,
+				form,
+				{
+					headers: {
+						...form.getHeaders(),
+						"X-Appwrite-Project": this.projectId,
+						"X-Appwrite-Key": this.apiKey
+					}
+				}
+			);
+
+			// Vaqtinchalik faylni o'chirish
+			await fs.promises.unlink(filePath).catch(() => {});
+
+			const url = this._buildViewUrl(data.$id);
 			return {
-				id: created.$id,
+				id: data.$id,
 				url,
 				name: filename,
 				mimeType: file.mimetype,
 				size: file.size,
 			};
-		} finally {
-			await fs.promises.unlink(filePath).catch(() => {});
+		} catch (error) {
+			console.error("Appwrite upload error:", error);
+			throw new Error(`Failed to upload file: ${error.message}`);
 		}
 	}
 
 	async deleteFile(fileId) {
-		await this.storage.deleteFile(this.bucketId, fileId);
+		try {
+			await axios.delete(
+				`${this.endpoint}/storage/buckets/${this.bucketId}/files/${fileId}`,
+				{
+					headers: {
+						"X-Appwrite-Project": this.projectId,
+						"X-Appwrite-Key": this.apiKey
+					}
+				}
+			);
+		} catch (error) {
+			console.error("Appwrite delete error:", error);
+			throw new Error(`Failed to delete file: ${error.message}`);
+		}
 	}
 
 	async getFileUrl(fileId) {
@@ -60,8 +93,7 @@ export default class AppwriteStorage extends FileStorage {
 	}
 
 	_buildViewUrl(fileId) {
-		const { APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID } = process.env;
-		return `${APPWRITE_ENDPOINT}/storage/buckets/${this.bucketId}/files/${fileId}/view?project=${APPWRITE_PROJECT_ID}`;
+		return `${this.endpoint}/storage/buckets/${this.bucketId}/files/${fileId}/view?project=${this.projectId}`;
 	}
 }
 

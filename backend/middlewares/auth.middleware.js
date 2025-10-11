@@ -1,7 +1,7 @@
 import TokenService from "../services/token.service.js";
 import BaseError from "../errors/base.error.js";
 
-export default function authGuard(req, res, next) {
+function authGuard(req, res, next) {
 	try {
 		const authHeader = req.headers.authorization || "";
 		const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
@@ -14,3 +14,6 @@ export default function authGuard(req, res, next) {
 		return next(error);
 	}
 }
+
+export { authGuard };
+export default authGuard;

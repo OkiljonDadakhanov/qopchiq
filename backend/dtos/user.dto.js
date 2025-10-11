@@ -4,8 +4,10 @@ export default class UserDto {
 		this.email = userDoc.email;
 		this.name = userDoc.name ?? userDoc.userName;
 		this.phoneNumber = userDoc.phoneNumber ?? userDoc.phone;
-		this.avatar = userDoc.avatar ?? userDoc.avatarUrl;
-		this.avatarFileId = userDoc.avatarFileId;
+		this.avatar = userDoc.avatar ? {
+			id: userDoc.avatarFileId,
+			url: userDoc.avatar
+		} : null;
 		this.isVerified = Boolean(userDoc.isVerified ?? userDoc.isActivated);
 		this.createdAt = userDoc.createdAt;
 		this.updatedAt = userDoc.updatedAt;

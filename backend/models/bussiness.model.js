@@ -25,4 +25,6 @@ const bussinessSchema = new mongoose.Schema({
 		dailyVerificationSentCount: { type: Number, default: 0 },
 	},
 	{ timestamps: true }
-)
+);
+
+export const Business = mongoose.model("Business", bussinessSchema);

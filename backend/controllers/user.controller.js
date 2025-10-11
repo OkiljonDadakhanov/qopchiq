@@ -40,7 +40,8 @@ export const deleteMe = async (req, res, next) => {
 
 export const updateAvatar = async (req, res, next) => {
 	try {
-		const user = await UserService.updateAvatar(req.userId, req.file);
+		const { avatar } = req.body;
+		const user = await UserService.updateAvatar(req.userId, avatar);
 		return res.json({ success: true, user });
 	} catch (error) {
 		return next(error);

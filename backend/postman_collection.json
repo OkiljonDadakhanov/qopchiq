@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Qopchiq API V0.0.3",
-    "description": "Authentication and user management API endpoints for Qopchiq application",
+    "name": "Qopchiq API V0.0.4",
+    "description": "Complete API endpoints for Qopchiq application with authentication, user management, business management, and file upload",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -278,9 +278,9 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"updated@example.com\"\n}"
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"updated@example.com\",\n  \"phone\": \"+998901234567\"\n}"
             },
-            "description": "Update multiple profile fields (allowed: name, email)"
+            "description": "Update multiple profile fields (allowed: name, email, phone)"
           }
         },
         {
@@ -312,7 +312,7 @@
                 {
                   "key": "key",
                   "value": "name",
-                  "description": "Field to update (name or email)"
+                  "description": "Field to update (name, email, phone)"
                 }
               ]
             },
@@ -320,7 +320,40 @@
               "mode": "raw",
               "raw": "{\n  \"value\": \"Only Name Updated\"\n}"
             },
-            "description": "Update a single field by key (name or email)"
+            "description": "Update a single field by key (name, email, phone)"
+          }
+        },
+        {
+          "name": "Update Avatar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/me/avatar",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me",
+                "avatar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"avatar\": {\n        \"id\": \"file-id-here\",\n        \"url\": \"https://example.com/avatar.jpg\"\n    }\n}"
+            },
+            "description": "Update user's avatar with ID and URL"
           }
         },
         {
@@ -346,11 +379,17 @@
             },
             "description": "Delete current authenticated user's account"
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "Upload",
+      "description": "File upload endpoints",
+      "item": [
         {
-          "name": "Update Avatar",
+          "name": "Upload File",
           "request": {
-            "method": "PATCH",
+            "method": "POST",
             "header": [
               {
                 "key": "Authorization",
@@ -358,93 +397,355 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/users/me/avatar",
+              "raw": "{{BASE_URL}}/api/upload/upload?folder=general",
               "host": [
                 "{{BASE_URL}}"
               ],
               "path": [
                 "api",
-                "users",
-                "me",
-                "avatar"
-              ]
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "file",
-                  "type": "file",
-                  "src": []
-                }
-              ]
-            },
-            "description": "Upload and set user's avatar (form-data with file field)"
-          }
-        }
-      ]
-    }
-  ],
-  "item_append": [
-    {
-      "name": "Files",
-      "description": "File upload and management",
-      "item": [
-        {
-          "name": "Upload File",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{BASE_URL}}/api/files/upload",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "files",
+                "upload",
                 "upload"
-              ]
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "file",
-                  "type": "file",
-                  "src": []
-                },
+              ],
+              "query": [
                 {
                   "key": "folder",
-                  "type": "text",
-                  "value": "uploads"
+                  "value": "general",
+                  "description": "avatars, business-avatars, documents, posts"
                 }
               ]
             },
-            "description": "Upload a file to storage and return {id,url,...}"
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "description": "Upload a file and get {id, url, name, size, mimeType}"
           }
         },
         {
           "name": "Delete File",
           "request": {
             "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
             "url": {
-              "raw": "{{BASE_URL}}/api/files/:id",
+              "raw": "{{BASE_URL}}/api/upload/file/:fileId",
               "host": [
                 "{{BASE_URL}}"
               ],
               "path": [
                 "api",
-                "files",
-                ":id"
+                "upload",
+                "file",
+                ":fileId"
               ],
               "variable": [
                 {
-                  "key": "id",
+                  "key": "fileId",
                   "value": "file-id-here"
                 }
               ]
             },
-            "description": "Delete a file by id"
+            "description": "Delete a file by ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Business",
+      "description": "Business profile management endpoints",
+      "item": [
+        {
+          "name": "Get Business Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/business/me",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "business",
+                "me"
+              ]
+            },
+            "description": "Get current business profile information"
+          }
+        },
+        {
+          "name": "Update Business Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/business/me",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "business",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Business Name\",\n    \"email\": \"business@example.com\",\n    \"phoneNumber\": \"+998901234567\",\n    \"description\": \"Business description\",\n    \"address\": \"Business address\"\n}"
+            },
+            "description": "Update business profile information"
+          }
+        },
+        {
+          "name": "Update Business Field",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/business/me/:key",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "business",
+                "me",
+                ":key"
+              ],
+              "variable": [
+                {
+                  "key": "key",
+                  "value": "name",
+                  "description": "name, email, phoneNumber, description, address"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"value\": \"New value\"\n}"
+            },
+            "description": "Update a specific business field"
+          }
+        },
+        {
+          "name": "Update Business Avatar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/business/me/avatar",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "business",
+                "me",
+                "avatar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"avatar\": {\n        \"id\": \"file-id-here\",\n        \"url\": \"https://example.com/business-avatar.jpg\"\n    }\n}"
+            },
+            "description": "Update business avatar with ID and URL"
+          }
+        },
+        {
+          "name": "Update Business Location",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/business/me/location",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "business",
+                "me",
+                "location"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"coordinates\": [69.2401, 41.2995]\n}"
+            },
+            "description": "Update business location coordinates [longitude, latitude]"
+          }
+        },
+        {
+          "name": "Add Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/business/me/documents",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "business",
+                "me",
+                "documents"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fileId\": \"uploaded-file-id\"\n}"
+            },
+            "description": "Add a document using previously uploaded file ID"
+          }
+        },
+        {
+          "name": "Remove Document",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/business/me/documents/:fileId",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "business",
+                "me",
+                "documents",
+                ":fileId"
+              ],
+              "variable": [
+                {
+                  "key": "fileId",
+                  "value": "file-id-to-remove"
+                }
+              ]
+            },
+            "description": "Remove a document by file ID"
+          }
+        },
+        {
+          "name": "Change Business Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/business/me/password",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "business",
+                "me",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"currentPassword\": \"currentpassword\",\n    \"newPassword\": \"newpassword123\"\n}"
+            },
+            "description": "Change business account password"
+          }
+        },
+        {
+          "name": "Delete Business Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/business/me",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "business",
+                "me"
+              ]
+            },
+            "description": "Delete business account permanently"
           }
         }
       ]
@@ -455,6 +756,12 @@
       "key": "BASE_URL",
       "value": "http://localhost:5000",
       "type": "string"
+    },
+    {
+      "key": "ACCESS_TOKEN",
+      "value": "",
+      "type": "string",
+      "description": "JWT access token from login/signup response"
     }
   ]
 }
