@@ -7,6 +7,11 @@ const allowedOrigins = process.env.CORS_ORIGIN
       "http://localhost:8080",      // Development Vue
     ];
 
+// Trailing slash'lar bilan ham, bo'lmagan bilan ham ishlashi uchun
+const normalizeOrigin = (origin) => {
+  return origin.replace(/\/$/, ''); // Trailing slash'ni olib tashlash
+};
+
 export const corsOptions = {
   origin: (origin, callback) => {
     console.log(`🌐 CORS request from origin: ${origin}`);
@@ -26,8 +31,14 @@ export const corsOptions = {
       return callback(null, true);
     }
 
-    if (allowedOrigins.includes(origin)) {
-      console.log(`✅ Origin ${origin} is allowed`);
+    // Trailing slash'ni hisobga olgan holda tekshirish
+    const normalizedOrigin = normalizeOrigin(origin);
+    const isAllowed = allowedOrigins.some(allowedOrigin => 
+      normalizeOrigin(allowedOrigin) === normalizedOrigin
+    );
+
+    if (isAllowed) {
+      console.log(`✅ Origin ${origin} is allowed (normalized: ${normalizedOrigin})`);
       return callback(null, true);
     }
 
