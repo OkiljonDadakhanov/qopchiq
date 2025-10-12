@@ -45,13 +45,9 @@ authClient.interceptors.response.use(
     }
     
     // Transform error for consistent handling
-    const transformedError = {
-      message: error.response?.data?.message || error.message || 'An error occurred',
-      status: error.response?.status,
-      data: error.response?.data,
-    }
+   
     
-    return Promise.reject(transformedError)
+    return Promise.reject(error)
   }
 )
 
