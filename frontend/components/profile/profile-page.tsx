@@ -4,7 +4,6 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
   ArrowLeft,
-  User,
   ShieldCheck,
   ShieldAlert,
   Trash2,
@@ -15,6 +14,7 @@ import { useAppStore, useHasHydrated } from "@/store/store"
 import { useFetchProfile, useDeleteUser } from "@/hooks/profile"
 import { useCustomToast } from "@/components/custom-toast"
 import { useToast } from "@/components/ui/use-toast"
+import ProfileAvatar from "./avatar"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -24,14 +24,12 @@ export default function ProfilePage() {
   const customToast = useCustomToast()
   const { toast } = useToast()
 
-  const { data, status, error, refetch } = useFetchProfile()
+  const { data: profile, status, error, refetch } = useFetchProfile()
 
   // ✅ Refetch profile on mount
   useEffect(() => {
     refetch()
   }, [refetch])
-
-  const profile = data
 
   // ✅ Sync React Query → Zustand
   useEffect(() => {
@@ -99,7 +97,7 @@ export default function ProfilePage() {
     })
   }
 
-  // ✅ Loading state (while store or query is hydrating)
+  // ✅ Loading state
   if (!hasHydrated || status === "pending") {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen text-gray-500">
@@ -152,20 +150,7 @@ export default function ProfilePage() {
 
       {/* Content */}
       <div className="flex-1 px-6 py-8">
-        {/* Avatar */}
-        <div className="flex justify-center mb-8">
-          <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt="Profile Avatar"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <User className="w-16 h-16 text-[#00B14F]" />
-            )}
-          </div>
-        </div>
+        <ProfileAvatar avatarUrl={avatarUrl} />
 
         <h2 className="text-2xl font-bold text-center mb-2">
           {profile?.name || "User"}

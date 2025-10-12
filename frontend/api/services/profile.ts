@@ -30,9 +30,7 @@ export const fetchUserProfile = async (): Promise<UserProfile> => {
     };
     
     // ✅ Debug: Log date information
-    console.log('📅 API createdAt:', payload.createdAt)
-    console.log('📅 Mapped createdAt:', mappedProfile.createdAt)
-    console.log('📅 Date validation:', mappedProfile.createdAt ? new Date(mappedProfile.createdAt).toISOString() : 'No date')
+   
     
     return mappedProfile as UserProfile;
   } catch (error) {

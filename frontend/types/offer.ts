@@ -16,6 +16,7 @@ export interface Offer {
   logo: string
 }
 
+
 export interface Location {
   city: string
   radius: string
