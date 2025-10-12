@@ -4,6 +4,8 @@ import authClient from "../authClient";
 // Upload Response Types
 // ===============================
 export interface UploadResponse {
+  id: string;
+  url: import("c:/Users/akilhan/Desktop/projects/qopchiq/frontend/types/types").User | null;
   success: boolean
   file: {
     id: string

@@ -67,7 +67,7 @@ export function SignInForm() {
       const data = await loginMutation.mutateAsync(credentials)
 
       // Check for both success flag and token
-      if (data.success === false || !data?.accessToken) {
+      if (!data || data.success === false || !data.accessToken) {
         throw new Error(data?.message || "Invalid credentials")
       }
 

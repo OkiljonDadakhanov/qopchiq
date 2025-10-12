@@ -1,5 +1,3 @@
-import type { ApiError } from '@/types/types'
-
 // ✅ Professional API error handling utilities
 export class ApiError extends Error {
   public status?: number

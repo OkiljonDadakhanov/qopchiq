@@ -17,7 +17,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
-      if (data.accessToken) {
+      if (data && data.accessToken) {
         // ✅ Store token in Zustand store only (not localStorage)
         setUser({
           name: data.user?.name || "User",
@@ -40,7 +40,7 @@ export const useRegister = () => {
   return useMutation({
     mutationFn: registerUser,
     onSuccess: (data) => {
-      if (data.accessToken) {
+      if (data && data.accessToken) {
         // ✅ Store token in Zustand store only (not localStorage)
         setUser({
           name: data.user?.name || "User",
