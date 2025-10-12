@@ -12,8 +12,8 @@ class BusinessService {
 		return new BusinessDto(business);
 	}
 
-	async updateProfile(businessId, data, avatarFile) {
-		const allowed = ["name", "email", "phoneNumber", "description", "address"];
+	async updateProfile(businessId, data, avatarFile, documentFiles, locationCoordinates) {
+		const allowed = ["name", "email", "phoneNumber", "description", "address", "businessType"];
 		const update = {};
 		for (const key of allowed) if (data[key] !== undefined) update[key] = data[key];
 
@@ -37,7 +37,41 @@ class BusinessService {
 			}
 		}
 
-		if (Object.keys(update).length === 0) throw BaseError.BadRequestError("Nothing to update");
+		// Location coordinates berilgan bo'lsa
+		if (locationCoordinates) {
+			if (!Array.isArray(locationCoordinates) || locationCoordinates.length !== 2) {
+				throw BaseError.BadRequestError("Invalid coordinates. Must be [longitude, latitude]");
+			}
+
+			const [longitude, latitude] = locationCoordinates;
+			if (typeof longitude !== "number" || typeof latitude !== "number") {
+				throw BaseError.BadRequestError("Coordinates must be numbers");
+			}
+
+			update.location = {
+				type: "Point",
+				coordinates: [longitude, latitude]
+			};
+		}
+
+		// Document files berilgan bo'lsa
+		if (documentFiles && documentFiles.length > 0) {
+			try {
+				const uploadPromises = documentFiles.map(file => StorageService.uploadFile(file));
+				const uploadResults = await Promise.all(uploadPromises);
+				
+				// Yangi hujjatlarni qo'shish
+				const newDocumentIds = uploadResults.map(result => result.id);
+				business.documents = [...business.documents, ...newDocumentIds];
+				await business.save();
+			} catch (error) {
+				throw BaseError.BadRequestError("Documents yuklashda xatolik: " + error.message);
+			}
+		}
+
+		if (Object.keys(update).length === 0 && !documentFiles) {
+			throw BaseError.BadRequestError("Nothing to update");
+		}
 		
 		const updatedBusiness = await Business.findByIdAndUpdate(businessId, update, { new: true });
 		return new BusinessDto(updatedBusiness);
@@ -49,49 +83,6 @@ class BusinessService {
 		
 		const business = await Business.findByIdAndUpdate(businessId, { [key]: value }, { new: true });
 		if (!business) throw BaseError.NotFoundError("Business not found");
-		return new BusinessDto(business);
-	}
-
-
-	async updateLocation(businessId, coordinates) {
-		if (!coordinates || !Array.isArray(coordinates) || coordinates.length !== 2) {
-			throw BaseError.BadRequestError("Invalid coordinates. Must be [longitude, latitude]");
-		}
-
-		const [longitude, latitude] = coordinates;
-		if (typeof longitude !== "number" || typeof latitude !== "number") {
-			throw BaseError.BadRequestError("Coordinates must be numbers");
-		}
-
-		const business = await Business.findByIdAndUpdate(
-			businessId,
-			{
-				location: {
-					type: "Point",
-					coordinates: [longitude, latitude]
-				}
-			},
-			{ new: true }
-		);
-
-		if (!business) throw BaseError.NotFoundError("Business not found");
-		return new BusinessDto(business);
-	}
-
-	async addDocument(businessId, fileId) {
-		if (!fileId) throw BaseError.BadRequestError("File ID is required");
-		
-		const business = await Business.findById(businessId);
-		if (!business) throw BaseError.NotFoundError("Business not found");
-
-		// Fayl URL'ini tekshirish
-		const fileUrl = await StorageService.getFileUrl(fileId);
-		if (!fileUrl) throw BaseError.BadRequestError("Invalid file ID");
-
-		// Hujjat qo'shish
-		business.documents.push(fileId);
-		await business.save();
-
 		return new BusinessDto(business);
 	}
 

@@ -3,8 +3,6 @@ import {
 	getMe,
 	updateProfile,
 	updateField,
-	updateLocation,
-	addDocument,
 	removeDocument,
 	deleteMe,
 	changePassword
@@ -17,15 +15,16 @@ const router = express.Router();
 // Business profil ma'lumotlari
 router.get("/me", authGuard, getMe);
 
-// Profil yangilash (avatar file bilan birga)
-router.patch("/me", authGuard, upload.single("avatar"), updateProfile);
+// Profil yangilash (avatar, location, documents bilan birga)
+router.patch("/me", authGuard, upload.fields([
+	{ name: "avatar", maxCount: 1 },
+	{ name: "documents", maxCount: 10 }
+]), updateProfile);
+
+// Boshqa field'lar yangilash
 router.patch("/me/:key", authGuard, updateField);
 
-// Location yangilash
-router.patch("/me/location", authGuard, updateLocation);
-
-// Hujjatlar boshqaruvi
-router.post("/me/documents", authGuard, addDocument);
+// Hujjat o'chirish
 router.delete("/me/documents/:fileId", authGuard, removeDocument);
 
 // Parol o'zgartirish

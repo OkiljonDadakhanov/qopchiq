@@ -13,7 +13,17 @@ export const getMe = async (req, res, next) => {
 
 export const updateProfile = async (req, res, next) => {
 	try {
-		const business = await BusinessService.updateProfile(req.userId, req.body, req.file);
+		const { longitude, latitude } = req.body;
+		const locationCoordinates = longitude && latitude ? [parseFloat(longitude), parseFloat(latitude)] : null;
+		const documentFiles = req.files ? Object.values(req.files).flat() : null;
+		
+		const business = await BusinessService.updateProfile(
+			req.userId, 
+			req.body, 
+			req.file, // avatar file
+			documentFiles, // document files
+			locationCoordinates
+		);
 		return res.json({ success: true, business });
 	} catch (error) {
 		return next(error);
@@ -33,25 +43,6 @@ export const updateField = async (req, res, next) => {
 };
 
 
-export const updateLocation = async (req, res, next) => {
-	try {
-		const { coordinates } = req.body;
-		const business = await BusinessService.updateLocation(req.userId, coordinates);
-		return res.json({ success: true, business });
-	} catch (error) {
-		return next(error);
-	}
-};
-
-export const addDocument = async (req, res, next) => {
-	try {
-		const { fileId } = req.body;
-		const business = await BusinessService.addDocument(req.userId, fileId);
-		return res.json({ success: true, business });
-	} catch (error) {
-		return next(error);
-	}
-};
 
 export const removeDocument = async (req, res, next) => {
 	try {

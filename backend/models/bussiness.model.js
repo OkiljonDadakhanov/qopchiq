@@ -8,10 +8,11 @@ const bussinessSchema = new mongoose.Schema({
         description: { type: String },
         avatar:{type:String},
         address: { type: String },
-        location: { // geojson format
+        location: {
             type: { type: String, default: "Point" },
-            coordinates: [Number], // [longitude, latitude]
-        },
+            coordinates: [Number],
+	},
+		bussinessType:{type: String},
         documents: [String],
 		lastLogin: {type: Date,default: Date.now},
 		isVerified: {type: Boolean, default: false},

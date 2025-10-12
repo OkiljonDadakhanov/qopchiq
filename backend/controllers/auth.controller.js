@@ -37,6 +37,28 @@ export const login = async (req, res, next) => {
 	}
 };
 
+export const businessSignup = async (req, res, next) => {
+	try {
+		const { email, password, name, phoneNumber, description, address, businessType } = req.body;
+		const data = await AuthService.businessSignup(email, password, name, phoneNumber, description, address, businessType);
+		setRefreshTokenCookie(res, data.refreshToken);
+		return res.status(201).json({ success: true, message: "Business created successfully", business: data.business, accessToken: data.accessToken });
+	} catch (error) {
+		return next(error);
+	}
+};
+
+export const businessLogin = async (req, res, next) => {
+	try {
+		const { email, password } = req.body;
+		const data = await AuthService.businessLogin(email, password);
+		setRefreshTokenCookie(res, data.refreshToken);
+		return res.status(200).json({ success: true, message: "Business login successful", business: data.business, accessToken: data.accessToken });
+	} catch (error) {
+		return next(error);
+	}
+};
+
 export const logout = async (req, res, next) => {
 	try {
 		const { refreshToken } = req.cookies || {};
