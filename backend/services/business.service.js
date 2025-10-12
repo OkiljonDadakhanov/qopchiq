@@ -12,16 +12,35 @@ class BusinessService {
 		return new BusinessDto(business);
 	}
 
-	async updateProfile(businessId, data) {
+	async updateProfile(businessId, data, avatarFile) {
 		const allowed = ["name", "email", "phoneNumber", "description", "address"];
 		const update = {};
 		for (const key of allowed) if (data[key] !== undefined) update[key] = data[key];
-		
+
+		const business = await Business.findById(businessId);
+		if (!business) throw BaseError.NotFoundError("Business not found");
+
+		// Avatar file berilgan bo'lsa, Appwrite'ga yuklash
+		if (avatarFile) {
+			try {
+				const uploadResult = await StorageService.uploadFile(avatarFile);
+				
+				// Eski avatar o'chirish
+				if (business.avatarFileId) {
+					StorageService.deleteFile(business.avatarFileId).catch(() => {});
+				}
+
+				update.avatar = uploadResult.url;
+				update.avatarFileId = uploadResult.id;
+			} catch (error) {
+				throw BaseError.BadRequestError("Avatar yuklashda xatolik: " + error.message);
+			}
+		}
+
 		if (Object.keys(update).length === 0) throw BaseError.BadRequestError("Nothing to update");
 		
-		const business = await Business.findByIdAndUpdate(businessId, update, { new: true });
-		if (!business) throw BaseError.NotFoundError("Business not found");
-		return new BusinessDto(business);
+		const updatedBusiness = await Business.findByIdAndUpdate(businessId, update, { new: true });
+		return new BusinessDto(updatedBusiness);
 	}
 
 	async updateField(businessId, key, value) {
@@ -33,23 +52,6 @@ class BusinessService {
 		return new BusinessDto(business);
 	}
 
-	async updateAvatar(businessId, avatarData) {
-		if (!avatarData) throw BaseError.BadRequestError("Avatar data is required");
-		
-		const business = await Business.findById(businessId);
-		if (!business) throw BaseError.NotFoundError("Business not found");
-
-		// Eski avatar o'chirish (agar fileId bo'lsa)
-		if (business.avatarFileId) {
-			StorageService.deleteFile(business.avatarFileId).catch(() => {});
-		}
-
-		business.avatar = avatarData.url;
-		business.avatarFileId = avatarData.id || null;
-		await business.save();
-
-		return new BusinessDto(business);
-	}
 
 	async updateLocation(businessId, coordinates) {
 		if (!coordinates || !Array.isArray(coordinates) || coordinates.length !== 2) {

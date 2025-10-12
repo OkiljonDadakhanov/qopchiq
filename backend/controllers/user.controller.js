@@ -1,4 +1,5 @@
 import UserService from "../services/user.service.js";
+import upload from "../middlewares/upload.middleware.js";
 
 export const getMe = async (req, res, next) => {
 	try {
@@ -11,7 +12,7 @@ export const getMe = async (req, res, next) => {
 
 export const updateProfile = async (req, res, next) => {
 	try {
-		const user = await UserService.updateProfile(req.userId, req.body);
+		const user = await UserService.updateProfile(req.userId, req.body, req.file);
 		return res.json({ success: true, user });
 	} catch (error) {
 		return next(error);
@@ -38,14 +39,5 @@ export const deleteMe = async (req, res, next) => {
 	}
 };
 
-export const updateAvatar = async (req, res, next) => {
-	try {
-		const { avatar } = req.body;
-		const user = await UserService.updateAvatar(req.userId, avatar);
-		return res.json({ success: true, user });
-	} catch (error) {
-		return next(error);
-	}
-};
 
 

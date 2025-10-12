@@ -10,14 +10,35 @@ class UserService {
 		return new UserDto(user);
 	}
 
-	async updateProfile(userId, data) {
-		const allowed = ["name", "email", "phone"]; // phone qo'shildi
+	async updateProfile(userId, data, avatarFile) {
+		const allowed = ["name", "email", "phone"];
 		const update = {};
 		for (const key of allowed) if (data[key] !== undefined) update[key] = data[key];
-		if (Object.keys(update).length === 0) throw BaseError.BadRequestError("Nothing to update");
-		const user = await User.findByIdAndUpdate(userId, update, { new: true });
+
+		const user = await User.findById(userId);
 		if (!user) throw BaseError.NotFoundError("User not found");
-		return new UserDto(user);
+
+		// Avatar file berilgan bo'lsa, Appwrite'ga yuklash
+		if (avatarFile) {
+			try {
+				const uploadResult = await StorageService.uploadFile(avatarFile);
+				
+				// Eski avatar o'chirish
+				if (user.avatarFileId) {
+					StorageService.deleteFile(user.avatarFileId).catch(() => {});
+				}
+
+				update.avatar = uploadResult.url;
+				update.avatarFileId = uploadResult.id;
+			} catch (error) {
+				throw BaseError.BadRequestError("Avatar yuklashda xatolik: " + error.message);
+			}
+		}
+
+		if (Object.keys(update).length === 0) throw BaseError.BadRequestError("Nothing to update");
+		
+		const updatedUser = await User.findByIdAndUpdate(userId, update, { new: true });
+		return new UserDto(updatedUser);
 	}
 
 	async updateField(userId, key, value) {
@@ -28,23 +49,6 @@ class UserService {
 		return new UserDto(user);
 	}
 
-	async updateAvatar(userId, avatarData) {
-		if (!avatarData) throw BaseError.BadRequestError("Avatar data is required");
-		
-		const user = await User.findById(userId);
-		if (!user) throw BaseError.NotFoundError("User not found");
-
-		// Eski avatar o'chirish (agar fileId bo'lsa)
-		if (user.avatarFileId) {
-			StorageService.deleteFile(user.avatarFileId).catch(() => {});
-		}
-
-		user.avatar = avatarData.url;
-		user.avatarFileId = avatarData.id || null;
-		await user.save();
-
-		return new UserDto(user);
-	}
 
 	async deleteMe(userId) {
 		const user = await User.findById(userId);

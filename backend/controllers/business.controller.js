@@ -1,5 +1,6 @@
 import BusinessService from "../services/business.service.js";
 import BaseError from "../errors/base.error.js";
+import upload from "../middlewares/upload.middleware.js";
 
 export const getMe = async (req, res, next) => {
 	try {
@@ -12,7 +13,7 @@ export const getMe = async (req, res, next) => {
 
 export const updateProfile = async (req, res, next) => {
 	try {
-		const business = await BusinessService.updateProfile(req.userId, req.body);
+		const business = await BusinessService.updateProfile(req.userId, req.body, req.file);
 		return res.json({ success: true, business });
 	} catch (error) {
 		return next(error);
@@ -31,15 +32,6 @@ export const updateField = async (req, res, next) => {
 	}
 };
 
-export const updateAvatar = async (req, res, next) => {
-	try {
-		const { avatar } = req.body;
-		const business = await BusinessService.updateAvatar(req.userId, avatar);
-		return res.json({ success: true, business });
-	} catch (error) {
-		return next(error);
-	}
-};
 
 export const updateLocation = async (req, res, next) => {
 	try {
