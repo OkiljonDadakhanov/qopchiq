@@ -26,6 +26,7 @@ export default function BottomNavWrapper() {
   if (pathname == "/check-email") return null;
   if (pathname == "/profile") return null;
   if (pathname == "/profile/edit") return null;
+  if(pathname == "/business/onboarding") return null;
 
 
   // ✅ Show on all other routes

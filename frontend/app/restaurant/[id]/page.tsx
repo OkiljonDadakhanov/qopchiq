@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { use, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Heart, MapPin, Clock, Globe, Minus, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-export default function RestaurantDetailPage({ params }: { params: { id: string } }) {
+export default function RestaurantDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const [quantity, setQuantity] = useState(1)
   const [isFavorite, setIsFavorite] = useState(false)
@@ -28,8 +29,6 @@ export default function RestaurantDetailPage({ params }: { params: { id: string 
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-   
-
       {/* Header Image */}
       <div className="relative h-64">
         <img
