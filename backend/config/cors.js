@@ -25,4 +25,5 @@ export const corsOptions = {
   allowedHeaders: ["Origin", "Content-Type", "Accept", "Authorization"],
   exposedHeaders: ["X-Total-Count", "X-Page-Count", "X-Request-ID"],
   maxAge: 86400,
+  
 };
