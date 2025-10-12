@@ -16,6 +16,7 @@ import { useAppStore } from "@/store/store"
 
 export const useFetchProfile = () => {
   const { user } = useAppStore()
+  const hasHydrated = useAppStore((s) => s.hasHydrated)
   
   return useQuery<UserProfile, Error>({
     queryKey: ["profile"],
@@ -26,7 +27,7 @@ export const useFetchProfile = () => {
       }
       return await fetchUserProfile()
     },
-    enabled: typeof window !== "undefined" && !!user?.token,
+    enabled: typeof window !== "undefined" && hasHydrated && !!user?.token,
     retry: 1,
     staleTime: 0, // Always consider data stale to ensure fresh fetches
     gcTime: 1000 * 60 * 5, // 5 minutes
@@ -40,7 +41,7 @@ export const useUpdateProfile = () => {
   return useMutation<UserProfile, Error, UpdateProfileData>({
     mutationFn: updateUserProfile,
     onSuccess: (updatedProfile) => {
-      // ✅ Update Zustand store with new profile data
+      // ✅ Update Zustand store with complete updated profile (saves to localStorage)
       if (user) {
         setUser({
           ...user,
@@ -93,11 +94,15 @@ export const useUpdateAvatar = () => {
   return useMutation<UserProfile, Error, File>({
     mutationFn: updateAvatar,
     onSuccess: (updatedProfile) => {
-      // ✅ Update Zustand store with new avatar
+      // ✅ Update Zustand store with complete updated profile (saves to localStorage)
       if (user) {
         setUser({
           ...user,
+          name: updatedProfile.name,
+          email: updatedProfile.email,
+          phone: updatedProfile.phone,
           avatar: updatedProfile.avatar,
+          isVerified: updatedProfile.isVerified,
         })
       }
       

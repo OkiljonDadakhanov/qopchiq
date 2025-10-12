@@ -39,8 +39,6 @@ export const uploadFile = async (formData: FormData): Promise<UploadResponse> =>
   }
 };
 
-console.log('uploaded file ', uploadFile)
-
 // ✅ Upload avatar specifically
 export const uploadAvatar = async (file: File): Promise<UploadResponse> => {
   const formData = new FormData();

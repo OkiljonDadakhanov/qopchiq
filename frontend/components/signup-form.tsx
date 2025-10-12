@@ -57,7 +57,7 @@ export function SignUpForm() {
   const isLoading = registerMutation.status === 'pending'
   const [showTermsWarning, setShowTermsWarning] = useState(false)
 
- 
+
 
   const handleChange = (
     field: keyof SignUpFormData,
@@ -74,7 +74,7 @@ export function SignUpForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-   
+
     if (!formData.agreedToTerms) {
       setShowTermsWarning(true)
       toast.warning(
@@ -92,9 +92,10 @@ export function SignUpForm() {
       const credentials: SignUpCredentials = { name, email, password }
       const data = await registerMutation.mutateAsync(credentials)
 
-      if (data.success === false || !data?.accessToken) {
+      if (!data || data.success === false || !data.accessToken) {
         throw new Error(data?.message || "Signup failed")
       }
+
 
       setUser({
         name: formData.name,
@@ -156,9 +157,8 @@ export function SignUpForm() {
 
       <div className="flex flex-col gap-1">
         <div
-          className={`flex items-center gap-2 p-2 rounded-md transition-colors ${
-            showTermsWarning ? "bg-red-50 border border-red-400" : ""
-          }`}
+          className={`flex items-center gap-2 p-2 rounded-md transition-colors ${showTermsWarning ? "bg-red-50 border border-red-400" : ""
+            }`}
         >
           <Checkbox
             id="terms"
@@ -175,7 +175,7 @@ export function SignUpForm() {
             .
           </label>
         </div>
-        
+
       </div>
 
       <Button

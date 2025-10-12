@@ -1,10 +1,17 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, User, ShieldCheck, ShieldAlert, Trash2, Edit } from "lucide-react"
+import {
+  ArrowLeft,
+  User,
+  ShieldCheck,
+  ShieldAlert,
+  Trash2,
+  Edit,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useAppStore } from "@/store/store"
+import { useAppStore, useHasHydrated } from "@/store/store"
 import { useFetchProfile, useDeleteUser } from "@/hooks/profile"
 import { useCustomToast } from "@/components/custom-toast"
 import { useToast } from "@/components/ui/use-toast"
@@ -12,62 +19,53 @@ import { useToast } from "@/components/ui/use-toast"
 export default function ProfilePage() {
   const router = useRouter()
   const { user, setUser, clearAll } = useAppStore()
+  const hasHydrated = useHasHydrated()
   const deleteUserMutation = useDeleteUser()
   const customToast = useCustomToast()
   const { toast } = useToast()
 
   const { data, status, error, refetch } = useFetchProfile()
 
-  // ✅ Refetch profile data on component mount to ensure fresh data
+  // ✅ Refetch profile on mount
   useEffect(() => {
     refetch()
   }, [refetch])
 
-
-
-  // ✅ Extract user safely from response
   const profile = data
 
-  // ✅ Sync query result to Zustand
+  // ✅ Sync React Query → Zustand
   useEffect(() => {
     if (status === "success" && profile) {
       setUser({
         name: profile.name,
         email: profile.email,
-        token: user?.token, // ✅ Token is already in Zustand store
+        token: user?.token,
         isVerified: profile.isVerified ?? false,
-        phone: profile.phone, // ✅ Include phone number
-        avatar: profile.avatar, // ✅ Include avatar
+        phone: profile.phone,
+        avatar: profile.avatar,
       })
     }
   }, [status, profile, setUser, user?.token])
 
-  // ✅ Refetch profile data when page becomes visible (user navigates back)
+  // ✅ Refetch when page regains focus
   useEffect(() => {
-    const handleFocus = () => {
-      refetch()
-    }
-
+    const handleFocus = () => refetch()
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        refetch()
-      }
+      if (!document.hidden) refetch()
     }
-
-    window.addEventListener('focus', handleFocus)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    
+    window.addEventListener("focus", handleFocus)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
     return () => {
-      window.removeEventListener('focus', handleFocus)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener("focus", handleFocus)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
   }, [refetch])
 
   const handleDelete = () => {
-    // ✅ Show a confirmation toast with action buttons
     toast({
       title: "Confirm Account Deletion",
-      description: "This action is irreversible. All your data will be permanently deleted.",
+      description:
+        "This action is irreversible. All your data will be permanently deleted.",
       duration: 10000,
       action: (
         <div className="flex gap-2">
@@ -77,11 +75,19 @@ export default function ProfilePage() {
             onClick={async () => {
               try {
                 await deleteUserMutation.mutateAsync()
-                customToast.success("Account Deleted", "Your account has been successfully removed.")
+                customToast.success(
+                  "Account Deleted",
+                  "Your account has been successfully removed."
+                )
+                clearAll()
                 router.push("/")
               } catch (err: any) {
                 console.error("Delete error:", err)
-                customToast.error("Delete Failed", err.message || "Could not delete your account. Please try again.")
+                customToast.error(
+                  "Delete Failed",
+                  err.message ||
+                    "Could not delete your account. Please try again."
+                )
               }
             }}
             disabled={deleteUserMutation.isPending}
@@ -93,7 +99,8 @@ export default function ProfilePage() {
     })
   }
 
-  if (status === "pending") {
+  // ✅ Loading state (while store or query is hydrating)
+  if (!hasHydrated || status === "pending") {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen text-gray-500">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00B14F] mb-4"></div>
@@ -106,27 +113,32 @@ export default function ProfilePage() {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen text-center px-6">
         <ShieldAlert size={48} className="text-red-500 mb-4" />
-        <h2 className="text-xl font-bold text-gray-800 mb-2">Failed to Load Profile</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">
+          Failed to Load Profile
+        </h2>
         <p className="text-gray-600 mb-6 max-w-md">
-          {(error as Error).message || "Something went wrong while loading your profile."}
+          {(error as Error).message ||
+            "Something went wrong while loading your profile."}
         </p>
         <div className="flex gap-3">
-          <Button 
+          <Button
             onClick={() => router.refresh()}
             className="bg-[#00B14F] hover:bg-[#009940] text-white"
           >
             Try Again
           </Button>
-          <Button 
-            variant="outline"
-            onClick={() => router.push("/")}
-          >
+          <Button variant="outline" onClick={() => router.push("/")}>
             Go Home
           </Button>
         </div>
       </div>
     )
   }
+
+  // ✅ Determine Appwrite avatar URL
+  const avatarUrl =
+    profile?.avatar?.url ||
+    (typeof profile?.avatar === "string" ? profile.avatar : null)
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -140,11 +152,12 @@ export default function ProfilePage() {
 
       {/* Content */}
       <div className="flex-1 px-6 py-8">
+        {/* Avatar */}
         <div className="flex justify-center mb-8">
           <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
-            {profile?.avatar?.url ? (
+            {avatarUrl ? (
               <img
-                src={profile.avatar.url}
+                src={avatarUrl}
                 alt="Profile Avatar"
                 className="w-full h-full object-cover"
               />
@@ -154,8 +167,11 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-center mb-2">{profile?.name}</h2>
+        <h2 className="text-2xl font-bold text-center mb-2">
+          {profile?.name || "User"}
+        </h2>
 
+        {/* Verified status */}
         <div className="flex justify-center items-center mb-8 text-sm text-gray-500">
           {profile?.isVerified ? (
             <div className="flex items-center gap-1 text-green-600">
@@ -170,34 +186,32 @@ export default function ProfilePage() {
           )}
         </div>
 
+        {/* Profile fields */}
         <div className="mb-8">
           <h3 className="text-xl font-bold mb-4">Your data</h3>
           <div className="space-y-4">
             <div className="border-b border-gray-100 pb-3">
               <p className="text-sm text-gray-600 mb-1">Name</p>
-              <p className="text-base font-medium">{profile?.name || "Not set"}</p>
+              <p className="text-base font-medium">
+                {profile?.name || "Not set"}
+              </p>
             </div>
 
             <div className="border-b border-gray-100 pb-3">
               <p className="text-sm text-gray-600 mb-1">Email*</p>
-              <p className="text-base font-medium">{profile?.email || "Not provided"}</p>
-            </div>
-
-            {profile?.phone && (
-              <div className="border-b border-gray-100 pb-3">
-                <p className="text-sm text-gray-600 mb-1">Phone</p>
-                <p className="text-base font-medium">+998 {profile.phone}</p>
-              </div>
-            )}
-
-            <div className="border-b border-gray-100 pb-3">
-              <p className="text-sm text-gray-600 mb-1">Account created</p>
               <p className="text-base font-medium">
-                {profile?.createdAt
-                  ? new Date(profile.createdAt).toLocaleDateString()
-                  : "Unknown"}
+                {profile?.email || "Not provided"}
               </p>
             </div>
+
+            {(profile?.phone || profile?.phoneNumber) && (
+              <div className="border-b border-gray-100 pb-3">
+                <p className="text-sm text-gray-600 mb-1">Phone</p>
+                <p className="text-base font-medium">
+                  +998 {profile.phone ?? profile.phoneNumber}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

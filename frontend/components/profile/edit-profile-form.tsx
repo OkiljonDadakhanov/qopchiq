@@ -11,7 +11,6 @@ import { useAppStore } from "@/store/store"
 import { useCustomToast } from "@/components/custom-toast"
 import { FormField } from "@/components/form-field"
 import { useUpdateProfile, useFetchProfile, useUpdateAvatar } from "@/hooks/profile"
-import { useUploadFile } from "@/hooks/use-upload"
 import type { UpdateProfileData } from "@/types/profile"
 
 export default function EditProfileForm() {
@@ -22,7 +21,6 @@ export default function EditProfileForm() {
   const { data: profile } = useFetchProfile()
   const updateProfileMutation = useUpdateProfile()
   const updateAvatarMutation = useUpdateAvatar()
-  const uploadFileMutation = useUploadFile()
   const toast = useCustomToast()
 
   const [formData, setFormData] = useState<UpdateProfileData>({
@@ -41,7 +39,7 @@ export default function EditProfileForm() {
         email: profile.email || "",
         phone: profile.phone || "",
       })
-      if (profile.avatar) setAvatarPreview(profile.avatar)
+      if (profile.avatar?.url) setAvatarPreview(profile.avatar.url)
     }
   }, [profile])
 
@@ -71,31 +69,16 @@ const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         return;
       }
   
-      let avatarUrl = profile?.avatar;
+      // ✅ Update profile data first (name, email, phone)
+      const updatedProfile = await updateProfileMutation.mutateAsync(formData);
   
-      // ✅ Upload avatar only if a new file is selected
+      // ✅ Upload avatar separately if a new file is selected
       if (avatarFile) {
-        const fileForm = new FormData();
-        fileForm.append("file", avatarFile);
-        avatarUrl = await uploadFileMutation.mutateAsync(fileForm);
+        await updateAvatarMutation.mutateAsync(avatarFile);
       }
   
-      // ✅ Include avatar & phone in the update payload
-      const updatedPayload: UpdateProfileData = {
-        ...formData,
-        avatar: avatarUrl,
-      };
-  
-      const updatedProfile = await updateProfileMutation.mutateAsync(updatedPayload);
-  
-      // ✅ Update Zustand immediately (persists to localStorage)
-      setUser({
-        ...user,
-        name: updatedProfile.name,
-        email: updatedProfile.email,
-        phone: updatedProfile.phone,
-        avatar: updatedProfile.avatar,
-      });
+      // ✅ Profile data is automatically saved to localStorage via Zustand store
+      // The hooks handle updating the store with the complete profile data
   
       toast.success("Profile Updated", "Your profile has been updated successfully.");
       router.push("/profile");
@@ -130,9 +113,9 @@ const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                   height={128}
                   className="object-cover w-full h-full"
                 />
-              ) : profile?.avatar ? (
+              ) : profile?.avatar?.url ? (
                 <Image
-                  src={profile.avatar}
+                  src={profile.avatar.url}
                   alt="Current Avatar"
                   width={128}
                   height={128}
@@ -146,7 +129,7 @@ const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             <button
               type="button"
               onClick={handleAvatarClick}
-              disabled={uploadFileMutation.isPending || updateAvatarMutation.isPending}
+              disabled={updateAvatarMutation.isPending}
               className="absolute bottom-0 right-0 w-10 h-10 bg-[#00B14F] rounded-full flex items-center justify-center shadow-md hover:bg-[#009940] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Camera className="w-5 h-5 text-white" />
@@ -158,7 +141,7 @@ const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               accept="image/*"
               className="hidden"
               onChange={handleAvatarChange}
-              disabled={uploadFileMutation.isPending || updateAvatarMutation.isPending}
+              disabled={updateAvatarMutation.isPending}
             />
           </div>
         </div>
@@ -222,10 +205,10 @@ const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       <div className="fixed bottom-0 left-0 right-0 px-6 py-5 bg-white border-t border-gray-100 shadow-lg">
         <Button
           onClick={handleSave}
-          disabled={updateProfileMutation.isPending || uploadFileMutation.isPending || updateAvatarMutation.isPending}
+          disabled={updateProfileMutation.isPending || updateAvatarMutation.isPending}
           className="w-full h-14 bg-[#00B14F] hover:bg-[#009940] text-white rounded-2xl text-base font-semibold"
         >
-          {updateProfileMutation.isPending || uploadFileMutation.isPending || updateAvatarMutation.isPending ? "Saving..." : "Save Changes"}
+          {updateProfileMutation.isPending || updateAvatarMutation.isPending ? "Saving..." : "Save Changes"}
         </Button>
       </div>
     </div>
