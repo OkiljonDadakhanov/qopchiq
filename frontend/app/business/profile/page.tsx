@@ -311,3 +311,6 @@
 //     </div>
 //   );
 // }
+export default function BusinessProfilePage() {
+  return <p>hello</p>;
+}
