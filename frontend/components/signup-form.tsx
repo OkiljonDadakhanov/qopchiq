@@ -11,7 +11,9 @@ import { useCustomToast } from "@/components/custom-toast"
 import { useRegister } from "@/hooks/auth"
 import type { SignUpCredentials } from "@/types/types"
 
-
+// ===========================
+// Constants
+// ===========================
 const ROUTES = {
   VERIFY: "/verify",
   SIGNIN: "/signin",
@@ -32,17 +34,16 @@ const TOAST_MESSAGES = {
   },
 } as const
 
-
-
 interface SignUpFormData extends SignUpCredentials {
   agreedToTerms: boolean
 }
 
-
+// ===========================
+// Component
+// ===========================
 export function SignUpForm() {
   const router = useRouter()
   const toast = useCustomToast()
-
   const registerMutation = useRegister()
 
   const [formData, setFormData] = useState<SignUpFormData>({
@@ -51,75 +52,84 @@ export function SignUpForm() {
     password: "",
     agreedToTerms: false,
   })
-  
-  // Add a ref to track if submission is in progress
-  const isSubmittingRef = useRef(false)
-  
-  // use mutation loading state
-  const isLoading = registerMutation.status === 'pending'
+
   const [showTermsWarning, setShowTermsWarning] = useState(false)
+  const isSubmittingRef = useRef(false)
+  const isLoading = registerMutation.status === "pending"
 
-
-
+  // ===========================
+  // Handlers
+  // ===========================
   const handleChange = (
     field: keyof SignUpFormData,
     value: string | boolean
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
-
-
-    if (field === "agreedToTerms" && value) {
-      setShowTermsWarning(false)
-    }
+    if (field === "agreedToTerms" && value) setShowTermsWarning(false)
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    e.stopPropagation() // Stop event from bubbling up
+    e.stopPropagation()
 
-    // Prevent multiple submissions
+    console.group("🧾 Signup Form Submission")
+    console.log("Form data before submission:", formData)
+
+    // Step 1️⃣ Prevent multiple submits
     if (isSubmittingRef.current || isLoading) {
+      console.warn("⚠️ Submission prevented: already in progress")
+      console.groupEnd()
       return
     }
 
+    // Step 2️⃣ Validate terms
     if (!formData.agreedToTerms) {
       setShowTermsWarning(true)
+      console.warn("⚠️ Terms not accepted")
       toast.warning(
         TOAST_MESSAGES.TERMS_REQUIRED.title,
         TOAST_MESSAGES.TERMS_REQUIRED.description
       )
+      console.groupEnd()
       return
     }
 
     setShowTermsWarning(false)
-
-    // Set submission flag
     isSubmittingRef.current = true
 
-    // use React Query mutation
     try {
+      console.log("📤 Sending signup request...")
       const { name, email, password } = formData
       const credentials: SignUpCredentials = { name, email, password }
-      const data = await registerMutation.mutateAsync(credentials)
 
+      const data = await registerMutation.mutateAsync(credentials)
+      console.log("✅ API response:", data)
+
+      // Step 3️⃣ Validate response
       if (!data || data.success === false || !data.accessToken) {
+        console.error("❌ Invalid response or missing token:", data)
         throw new Error(data?.message || "Signup failed")
       }
 
-      // User is already set in the mutation's onSuccess
+      // Step 4️⃣ Notify success
       toast.success(
         TOAST_MESSAGES.SUCCESS.title,
         TOAST_MESSAGES.SUCCESS.description
       )
+      console.info("🎉 User created successfully — redirecting...")
 
+      // Step 5️⃣ Redirect to verification
       router.push(ROUTES.VERIFY)
     } catch (error) {
+      console.error("❌ Signup error:", error)
       const message = error instanceof Error ? error.message : "Signup failed"
       toast.error(TOAST_MESSAGES.ERROR.title, message)
     } finally {
-      // Reset submission flag after a short delay
+      // Step 6️⃣ Reset submission guard after delay
       setTimeout(() => {
         isSubmittingRef.current = false
+        console.log("🔄 Submission flag reset")
+        console.groupEnd()
       }, 1000)
     }
   }
@@ -127,9 +137,9 @@ export function SignUpForm() {
   // ===========================
   // Render
   // ===========================
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      {/* =================== Name =================== */}
       <FormField
         id="name"
         label="Full Name"
@@ -141,6 +151,7 @@ export function SignUpForm() {
         icon={<UserIcon className="h-5 w-5" />}
       />
 
+      {/* =================== Email =================== */}
       <FormField
         id="email"
         label="Email"
@@ -152,6 +163,7 @@ export function SignUpForm() {
         icon={<Mail className="h-5 w-5" />}
       />
 
+      {/* =================== Password =================== */}
       <FormField
         id="password"
         label="Password"
@@ -163,10 +175,12 @@ export function SignUpForm() {
         icon={<Lock className="h-5 w-5" />}
       />
 
+      {/* =================== Terms & Conditions =================== */}
       <div className="flex flex-col gap-1">
         <div
-          className={`flex items-center gap-2 p-2 rounded-md transition-colors ${showTermsWarning ? "bg-red-50 border border-red-400" : ""
-            }`}
+          className={`flex items-center gap-2 p-2 rounded-md transition-colors ${
+            showTermsWarning ? "bg-red-50 border border-red-400" : ""
+          }`}
         >
           <Checkbox
             id="terms"
@@ -177,23 +191,27 @@ export function SignUpForm() {
           />
           <label htmlFor="terms" className="text-sm text-gray-600">
             I understand the{" "}
-            <Link href={ROUTES.TERMS} className="text-[#00B14F] hover:underline">
+            <Link
+              href={ROUTES.TERMS}
+              className="text-[#00B14F] hover:underline"
+            >
               terms & policy
             </Link>
             .
           </label>
         </div>
-
       </div>
 
+      {/* =================== Submit Button =================== */}
       <Button
         type="submit"
         className="h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943] disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={isLoading || isSubmittingRef.current}
       >
-        {isLoading ? "Signing up..." : "SIGN UP"}
+        {isLoading || isSubmittingRef.current ? "Signing up..." : "SIGN UP"}
       </Button>
 
+      {/* =================== Footer Links =================== */}
       <div className="text-center space-y-2">
         <p className="text-sm text-gray-500">or sign up with</p>
         <p className="text-sm text-gray-600">
