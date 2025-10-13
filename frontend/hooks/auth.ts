@@ -34,11 +34,13 @@ export const useLogin = () => {
 }
 
 // ✅ Register mutation
+
 export const useRegister = () => {
   const { setUser } = useAppStore()
   
   return useMutation({
     mutationFn: registerUser,
+    retry: false, // ⭐ Add this to prevent automatic retries
     onSuccess: (data) => {
       if (data && data.accessToken) {
         // ✅ Store token in Zustand store only (not localStorage)

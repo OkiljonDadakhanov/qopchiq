@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FormField } from "@/components/form-field"
 import { useCustomToast } from "@/components/custom-toast"
-import { useAppStore } from "@/store/store"
 import { useRegister } from "@/hooks/auth"
 import type { SignUpCredentials } from "@/types/types"
 
@@ -43,7 +42,6 @@ interface SignUpFormData extends SignUpCredentials {
 export function SignUpForm() {
   const router = useRouter()
   const toast = useCustomToast()
-  const setUser = useAppStore((state) => state.setUser)
 
   const registerMutation = useRegister()
 
@@ -100,7 +98,7 @@ export function SignUpForm() {
 
     // use React Query mutation
     try {
-      const { agreedToTerms, name, email, password } = formData
+      const { name, email, password } = formData
       const credentials: SignUpCredentials = { name, email, password }
       const data = await registerMutation.mutateAsync(credentials)
 
@@ -108,14 +106,7 @@ export function SignUpForm() {
         throw new Error(data?.message || "Signup failed")
       }
 
-
-      setUser({
-        name: formData.name,
-        email: formData.email,
-        token: data.accessToken,
-        isVerified: false,
-      })
-
+      // User is already set in the mutation's onSuccess
       toast.success(
         TOAST_MESSAGES.SUCCESS.title,
         TOAST_MESSAGES.SUCCESS.description
