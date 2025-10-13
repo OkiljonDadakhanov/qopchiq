@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Qopchiq API V0.0.4",
+    "name": "Qopchiq API V0.0.5",
     "description": "Complete API endpoints for Qopchiq application with authentication, user management, business management, and file upload",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -119,6 +119,64 @@
               "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"testpassword123\"\n}"
             },
             "description": "Login with existing user credentials"
+          }
+        },
+        {
+          "name": "Business Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/business/signup",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "business",
+                "signup"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Test Business\",\n    \"email\": \"business@example.com\",\n    \"password\": \"businesspassword123\",\n    \"phoneNumber\": \"+998901234567\",\n    \"description\": \"Business description\",\n    \"address\": \"Business address\",\n    \"businessType\": \"restaurant\"\n}"
+            },
+            "description": "Register a new business account. Sends verification email."
+          }
+        },
+        {
+          "name": "Business Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/business/login",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "business",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"business@example.com\",\n    \"password\": \"businesspassword123\"\n}"
+            },
+            "description": "Login with existing business credentials"
           }
         },
         {
@@ -257,10 +315,6 @@
             "method": "PATCH",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
                 "key": "Authorization",
                 "value": "Bearer {{ACCESS_TOKEN}}"
               }
@@ -277,10 +331,31 @@
               ]
             },
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"updated@example.com\",\n  \"phone\": \"+998901234567\"\n}"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Updated Name",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "updated@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "+998901234567",
+                  "type": "text"
+                },
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": []
+                }
+              ]
             },
-            "description": "Update multiple profile fields (allowed: name, email, phone)"
+            "description": "Update profile fields including avatar file. Avatar file is optional. If provided, automatically uploads to Appwrite and sets avatar URL."
           }
         },
         {
@@ -321,39 +396,6 @@
               "raw": "{\n  \"value\": \"Only Name Updated\"\n}"
             },
             "description": "Update a single field by key (name, email, phone)"
-          }
-        },
-        {
-          "name": "Update Avatar",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ACCESS_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/users/me/avatar",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "me",
-                "avatar"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"avatar\": {\n        \"id\": \"file-id-here\",\n        \"url\": \"https://example.com/avatar.jpg\"\n    }\n}"
-            },
-            "description": "Update user's avatar with ID and URL"
           }
         },
         {
@@ -494,10 +536,6 @@
             "method": "PATCH",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
                 "key": "Authorization",
                 "value": "Bearer {{ACCESS_TOKEN}}"
               }
@@ -514,10 +552,61 @@
               ]
             },
             "body": {
-              "mode": "raw",
-              "raw": "{\n    \"name\": \"Updated Business Name\",\n    \"email\": \"business@example.com\",\n    \"phoneNumber\": \"+998901234567\",\n    \"description\": \"Business description\",\n    \"address\": \"Business address\"\n}"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Updated Business Name",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "business@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "phoneNumber",
+                  "value": "+998901234567",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Business description",
+                  "type": "text"
+                },
+                {
+                  "key": "address",
+                  "value": "Business address",
+                  "type": "text"
+                },
+                {
+                  "key": "businessType",
+                  "value": "restaurant",
+                  "type": "text"
+                },
+                {
+                  "key": "longitude",
+                  "value": "69.2401",
+                  "type": "text"
+                },
+                {
+                  "key": "latitude",
+                  "value": "41.2995",
+                  "type": "text"
+                },
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "documents",
+                  "type": "file",
+                  "src": []
+                }
+              ]
             },
-            "description": "Update business profile information"
+            "description": "Update business profile fields including avatar, location coordinates, and documents. All files are optional. If provided, automatically uploads to Appwrite and sets URLs."
           }
         },
         {
@@ -558,105 +647,6 @@
               "raw": "{\n    \"value\": \"New value\"\n}"
             },
             "description": "Update a specific business field"
-          }
-        },
-        {
-          "name": "Update Business Avatar",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ACCESS_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/business/me/avatar",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me",
-                "avatar"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"avatar\": {\n        \"id\": \"file-id-here\",\n        \"url\": \"https://example.com/business-avatar.jpg\"\n    }\n}"
-            },
-            "description": "Update business avatar with ID and URL"
-          }
-        },
-        {
-          "name": "Update Business Location",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ACCESS_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/business/me/location",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me",
-                "location"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"coordinates\": [69.2401, 41.2995]\n}"
-            },
-            "description": "Update business location coordinates [longitude, latitude]"
-          }
-        },
-        {
-          "name": "Add Document",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ACCESS_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/business/me/documents",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me",
-                "documents"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"fileId\": \"uploaded-file-id\"\n}"
-            },
-            "description": "Add a document using previously uploaded file ID"
           }
         },
         {
