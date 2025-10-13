@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Mail, Lock, User as UserIcon } from "lucide-react"
@@ -53,6 +53,10 @@ export function SignUpForm() {
     password: "",
     agreedToTerms: false,
   })
+  
+  // Add a ref to track if submission is in progress
+  const isSubmittingRef = useRef(false)
+  
   // use mutation loading state
   const isLoading = registerMutation.status === 'pending'
   const [showTermsWarning, setShowTermsWarning] = useState(false)
@@ -73,7 +77,12 @@ export function SignUpForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    e.stopPropagation() // Stop event from bubbling up
 
+    // Prevent multiple submissions
+    if (isSubmittingRef.current || isLoading) {
+      return
+    }
 
     if (!formData.agreedToTerms) {
       setShowTermsWarning(true)
@@ -85,6 +94,9 @@ export function SignUpForm() {
     }
 
     setShowTermsWarning(false)
+
+    // Set submission flag
+    isSubmittingRef.current = true
 
     // use React Query mutation
     try {
@@ -113,6 +125,11 @@ export function SignUpForm() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Signup failed"
       toast.error(TOAST_MESSAGES.ERROR.title, message)
+    } finally {
+      // Reset submission flag after a short delay
+      setTimeout(() => {
+        isSubmittingRef.current = false
+      }, 1000)
     }
   }
 
@@ -181,7 +198,7 @@ export function SignUpForm() {
       <Button
         type="submit"
         className="h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943] disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={isLoading}
+        disabled={isLoading || isSubmittingRef.current}
       >
         {isLoading ? "Signing up..." : "SIGN UP"}
       </Button>
