@@ -34,6 +34,7 @@ export const uploadFile = async (formData: FormData, folder = "general"): Promis
       },
     });
     
+    
     if (!data.success || !data.file) {
       throw new Error('Invalid upload response');
     }
