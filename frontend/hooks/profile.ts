@@ -54,8 +54,8 @@ export const useFetchProfile = () => {
 
   return useQuery<UserProfile, Error>({
     queryKey: ["profile"],
-    queryFn: async () => {
-      const profile = await fetchUserProfile()
+    queryFn: async ({ signal }) => {
+      const profile = await fetchUserProfile({ signal })
       return normalizeProfile({ ...profile, token: user?.token }) as UserProfile
     },
     enabled: hasHydrated && !!user?.token,
