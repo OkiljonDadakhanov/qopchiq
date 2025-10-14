@@ -2,14 +2,16 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useBusinessLogin } from "@/hooks/business-auth"
+import { useCustomToast } from "@/components/custom-toast"
 
 export default function BusinessSigninPage() {
   const router = useRouter()
@@ -18,9 +20,36 @@ export default function BusinessSigninPage() {
     password: "",
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const toast = useCustomToast()
+  const loginMutation = useBusinessLogin()
+  const isSubmitting = loginMutation.isPending
+
+  const isFormValid = useMemo(() => {
+    return formData.email.trim().length > 3 && formData.password.trim().length >= 6
+  }, [formData.email, formData.password])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    router.push("/business/dashboard")
+
+    if (!isFormValid || isSubmitting) {
+      return
+    }
+
+    try {
+      await loginMutation.mutateAsync({
+        email: formData.email.trim(),
+        password: formData.password,
+      })
+
+      toast.success("Welcome back", "You’re now signed in to your business dashboard.")
+      router.push("/business/dashboard")
+    } catch (error: any) {
+      console.error("Business signin failed:", error)
+      toast.error(
+        "Sign in failed",
+        error?.message || "Unable to sign you in. Please check your credentials and try again.",
+      )
+    }
   }
 
   return (
@@ -74,8 +103,18 @@ export default function BusinessSigninPage() {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full bg-[#00B14F] hover:bg-[#009940]">
-                Sign in
+              <Button
+                type="submit"
+                disabled={!isFormValid || isSubmitting}
+                className="w-full bg-[#00B14F] hover:bg-[#009940] disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Signing in...
+                  </span>
+                ) : (
+                  "Sign in"
+                )}
               </Button>
             </form>
 

@@ -2,14 +2,18 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useBusinessRegister } from "@/hooks/business-auth"
+import { useCustomToast } from "@/components/custom-toast"
+
+const sanitizePhone = (value: string) => value.replace(/[^0-9+]/g, "")
 
 export default function BusinessSignupPage() {
   const router = useRouter()
@@ -20,9 +24,51 @@ export default function BusinessSignupPage() {
     password: "",
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const toast = useCustomToast()
+  const registerMutation = useBusinessRegister()
+
+  const isSubmitting = registerMutation.isPending
+
+  const isFormValid = useMemo(() => {
+    return (
+      formData.businessName.trim().length > 1 &&
+      formData.email.trim().length > 3 &&
+      formData.password.trim().length >= 6
+    )
+  }, [formData.businessName, formData.email, formData.password])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    router.push("/business/onboarding")
+
+    if (!isFormValid || isSubmitting) {
+      return
+    }
+
+    try {
+      const rawPhone = sanitizePhone(formData.phone.trim())
+
+      const payload = {
+        name: formData.businessName.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        phoneNumber: rawPhone.length ? rawPhone : undefined,
+      }
+
+      await registerMutation.mutateAsync(payload)
+
+      toast.success(
+        "Account created",
+        "Welcome to Qopchiq! Let’s finish setting up your business.",
+      )
+
+      router.push("/business/onboarding")
+    } catch (error: any) {
+      console.error("Business signup failed:", error)
+      toast.error(
+        "Signup failed",
+        error?.message || "Unable to create your business account. Please try again.",
+      )
+    }
   }
 
   return (
@@ -90,8 +136,18 @@ export default function BusinessSignupPage() {
                 />
               </div>
 
-              <Button type="submit" className="w-full bg-[#00B14F] hover:bg-[#009940]">
-                Create business account
+              <Button
+                type="submit"
+                disabled={!isFormValid || isSubmitting}
+                className="w-full bg-[#00B14F] hover:bg-[#009940] disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Creating account...
+                  </span>
+                ) : (
+                  "Create business account"
+                )}
               </Button>
             </form>
 

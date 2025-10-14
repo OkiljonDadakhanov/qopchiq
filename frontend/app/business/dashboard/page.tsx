@@ -1,22 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import {
   Plus,
   Package,
   ShoppingBag,
   TrendingUp,
-  Settings,
   LogOut,
   Eye,
   User,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useFetchBusinessProfile } from "@/hooks/business";
+import { useBusinessLogout } from "@/hooks/business-auth";
+import { useCustomToast } from "@/components/custom-toast";
 
 export default function BusinessDashboardPage() {
-  const [activeTab, setActiveTab] = useState("overview");
+
+  const toast = useCustomToast();
+  const { data: business, isPending, isFetching } = useFetchBusinessProfile();
+  const logoutMutation = useBusinessLogout();
+
+  const businessName = useMemo(() => {
+    if (business?.name) return business.name;
+    if (business?.email) return business.email.split("@")[0];
+    return "Your business";
+  }, [business]);
+
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+      toast.success("Signed out", "You have been signed out of your business account.");
+    } catch (error: any) {
+      console.error("Business logout failed:", error);
+      toast.error("Logout failed", error?.message || "We couldn't sign you out. Please try again.");
+    }
+  };
 
   const stats = [
     { label: "Active listings", value: "12", change: "+2 this week", icon: Package },
@@ -47,8 +69,12 @@ export default function BusinessDashboardPage() {
                 className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16"
               />
               <div className="hidden sm:block">
-                <h1 className="font-bold text-gray-900 text-lg sm:text-xl">Green Cafe</h1>
-                <p className="text-xs text-gray-500">Business Dashboard</p>
+                <h1 className="font-bold text-gray-900 text-lg sm:text-xl">
+                  {businessName}
+                </h1>
+                <p className="text-xs text-gray-500">
+                  {isPending || isFetching ? "Syncing details..." : "Business Dashboard"}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
@@ -57,11 +83,19 @@ export default function BusinessDashboardPage() {
                   <User className="w-5 h-5 sm:w-6 sm:h-6" />
                 </Button>
               </Link>
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="p-2 sm:p-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                disabled={logoutMutation.isPending}
+                className="p-2 sm:p-3 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {logoutMutation.isPending ? (
+                  <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                ) : (
                   <LogOut className="w-5 h-5 sm:w-6 sm:h-6" />
-                </Button>
-              </Link>
+                )}
+              </Button>
             </div>
           </div>
         </div>
@@ -87,6 +121,13 @@ export default function BusinessDashboardPage() {
             </div>
           ))}
         </div>
+
+        {(isPending || isFetching) && (
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-8" role="status">
+            <Loader2 className="h-4 w-4 animate-spin text-[#00B14F]" />
+            Updating your latest stats...
+          </div>
+        )}
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

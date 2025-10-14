@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import fs from "fs";
+import os from "os";
 import path from "path";
 import { ID } from "node-appwrite";
 import FormData from "form-data";
@@ -29,7 +30,7 @@ export default class AppwriteStorage extends FileStorage {
 		}
 
 		try {
-			const uploadsDir = path.join(process.cwd(), "uploads");
+                        const uploadsDir = path.join(os.tmpdir(), "uploads");
 			if (!fs.existsSync(uploadsDir)) {
 				await fs.promises.mkdir(uploadsDir, { recursive: true });
 			}

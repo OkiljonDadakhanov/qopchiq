@@ -15,10 +15,19 @@ authClient.interceptors.request.use(
   (config) => {
     try {
       if (typeof window !== 'undefined' && config.headers) {
-        // ✅ Get token from Zustand store instead of localStorage
+        // ✅ Get token from Zustand stores instead of localStorage
         const { useAppStore } = require('@/store/store')
-        const token = useAppStore.getState().getToken()
-        
+        let token = useAppStore.getState().getToken()
+
+        if (!token) {
+          try {
+            const { useBusinessStore } = require('@/store/business-store')
+            token = useBusinessStore.getState().getToken()
+          } catch (error) {
+            console.warn('Business store unavailable:', error)
+          }
+        }
+
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }
@@ -40,7 +49,18 @@ authClient.interceptors.response.use(
       if (typeof window !== 'undefined') {
         const { useAppStore } = require('@/store/store')
         useAppStore.getState().clearAll()
-        window.location.href = '/signin'
+
+        try {
+          const { useBusinessStore } = require('@/store/business-store')
+          useBusinessStore.getState().clearAll()
+        } catch (error) {
+          console.warn('Business store cleanup failed:', error)
+        }
+
+        const redirectTo = window.location.pathname.startsWith('/business')
+          ? '/business/signin'
+          : '/signin'
+        window.location.href = redirectTo
       }
     }
     

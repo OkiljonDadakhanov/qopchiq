@@ -1,5 +1,6 @@
 import { Client, Storage, ID } from 'node-appwrite'
 import fs from 'fs'
+import os from 'os'
 import path from 'path'
 import FormData from 'form-data'
 import axios from 'axios'
@@ -34,7 +35,7 @@ class FileService {
         throw new Error("Fayl tanlanmadi yoki noto'g'ri formatda")
       }
 
-      const uploadsDir = path.join(process.cwd(), 'uploads')
+      const uploadsDir = path.join(os.tmpdir(), 'uploads')
       if (!fs.existsSync(uploadsDir)) {
         await fs.promises.mkdir(uploadsDir, { recursive: true })
       }

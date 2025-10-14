@@ -74,12 +74,17 @@ export const updateAvatar = async (file: File): Promise<UserProfile> => {
   try {
     // Step 1: Upload the file
     const uploadResponse = await uploadAvatar(file);
-    
+    const uploadedFile = uploadResponse.file;
+
+    if (!uploadedFile?.id || !uploadedFile?.url) {
+      throw new Error('Invalid avatar upload response');
+    }
+
     // Step 2: Update user profile with avatar data
     const avatarData = {
       avatar: {
-        id: uploadResponse.file.id,
-        url: uploadResponse.file.url
+        id: uploadedFile.id,
+        url: uploadedFile.url
       }
     };
     
