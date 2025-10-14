@@ -1,6 +1,6 @@
 import authClient from '@/api/authClient';
 import { uploadAvatar } from '@/api/services/upload';
-import type { UserProfile, UpdateProfileData, ChangePasswordData, UpdateAvatar } from '@/types/profile';
+import type { UserProfile, UpdateProfileData, ChangePasswordData } from '@/types/profile';
 
 // ✅ Professional error handling for profile services
 const handleProfileError = (error: any) => {
@@ -8,9 +8,11 @@ const handleProfileError = (error: any) => {
   throw new Error(error.message || 'Profile operation failed');
 };
 
-export const fetchUserProfile = async (): Promise<UserProfile> => {
+export const fetchUserProfile = async (options?: { signal?: AbortSignal }): Promise<UserProfile> => {
   try {
-    const { data } = await authClient.get('/api/users/me');
+    const { data } = await authClient.get('/api/users/me', {
+      signal: options?.signal,
+    });
     // API may return { user: { ... } } or return the user object directly
     const payload = data?.user ?? data;
     
@@ -40,9 +42,11 @@ export const fetchUserProfile = async (): Promise<UserProfile> => {
 };
 
 // ✅ Fetch updated profile after avatar update
-export const fetchUpdatedProfile = async (): Promise<UserProfile> => {
+export const fetchUpdatedProfile = async (options?: { signal?: AbortSignal }): Promise<UserProfile> => {
   try {
-    const { data } = await authClient.get('/api/users/me');
+    const { data } = await authClient.get('/api/users/me', {
+      signal: options?.signal,
+    });
     
     // API may return { user: { ... } } or return the user object directly
     const payload = data?.user ?? data;

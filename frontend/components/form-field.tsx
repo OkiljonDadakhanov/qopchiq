@@ -11,6 +11,8 @@ export function FormField({
   onChange,
   required = false,
   icon,
+  error,
+  disabled,
 }: FormFieldProps) {
   return (
     <div className="space-y-2">
@@ -33,9 +35,17 @@ export function FormField({
           value={value}
           onChange={onChange}
           required={required}
+          disabled={disabled}
           className={`h-12 rounded-lg border-gray-300 ${icon ? "pl-10" : ""}`}
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
         />
       </div>
+      {error ? (
+        <p id={`${id}-error`} className="text-xs text-red-500">
+          {error}
+        </p>
+      ) : null}
     </div>
   )
 }

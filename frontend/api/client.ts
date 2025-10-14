@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
+import { getApiBaseUrl } from '@/lib/config';
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+export const API_URL = getApiBaseUrl();
 
 const client = axios.create({
   baseURL: API_URL,

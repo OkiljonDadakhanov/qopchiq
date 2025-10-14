@@ -1,27 +1,51 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import Image from "next/image"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useCustomToast } from "@/components/custom-toast"
+import { useBusinessLogin } from "@/hooks/business-auth"
+
+const loginSchema = z.object({
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+})
+
+type LoginValues = z.infer<typeof loginSchema>
 
 export default function BusinessSigninPage() {
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+  const toast = useCustomToast()
+  const loginMutation = useBusinessLogin()
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    router.push("/business/dashboard")
+  const onSubmit = async (values: LoginValues) => {
+    try {
+      await loginMutation.mutateAsync(values)
+      toast.success("Welcome back", "You are now signed in to your business dashboard")
+      router.push("/business/dashboard")
+    } catch (error: any) {
+      toast.error("Sign in failed", error?.message ?? "Unable to sign in. Please try again.")
+    }
   }
+
+  const isLoading = loginMutation.isPending || isSubmitting
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -39,17 +63,13 @@ export default function BusinessSigninPage() {
               <p className="text-sm text-gray-600 text-center mt-2">Welcome back to your business dashboard</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <Label htmlFor="email">Email address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="business@example.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
+                <Input id="email" type="email" placeholder="business@example.com" autoComplete="email" {...register("email")} />
+                {errors.email?.message ? (
+                  <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+                ) : null}
               </div>
 
               <div>
@@ -58,10 +78,12 @@ export default function BusinessSigninPage() {
                   id="password"
                   type="password"
                   placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
+                  autoComplete="current-password"
+                  {...register("password")}
                 />
+                {errors.password?.message ? (
+                  <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+                ) : null}
               </div>
 
               <div className="flex items-center justify-between text-sm">
@@ -74,8 +96,8 @@ export default function BusinessSigninPage() {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full bg-[#00B14F] hover:bg-[#009940]">
-                Sign in
+              <Button type="submit" className="w-full bg-[#00B14F] hover:bg-[#009940]" disabled={isLoading}>
+                {isLoading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
 
