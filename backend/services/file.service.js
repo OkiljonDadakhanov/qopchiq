@@ -1,5 +1,6 @@
 import { Client, Storage, ID } from 'node-appwrite'
 import fs from 'fs'
+import os from 'os'
 import path from 'path'
 import FormData from 'form-data'
 import axios from 'axios'
@@ -34,7 +35,7 @@ class FileService {
         throw new Error("Fayl tanlanmadi yoki noto'g'ri formatda")
       }
 
-      const uploadsDir = path.join(process.cwd(), 'uploads')
+      const uploadsDir = path.join(os.tmpdir(), 'qopchiq-upload-cache')
       if (!fs.existsSync(uploadsDir)) {
         await fs.promises.mkdir(uploadsDir, { recursive: true })
       }
@@ -43,7 +44,6 @@ class FileService {
       const filename = `${Date.now()}_${file.originalname}`
       const filePath = path.join(uploadsDir, filename)
 
-      // Vaqtinchalik saqlash
       await fs.promises.writeFile(filePath, file.buffer)
 
       const form = new FormData()
@@ -62,7 +62,7 @@ class FileService {
         }
       )
 
-      await fs.promises.unlink(filePath)
+      await fs.promises.unlink(filePath).catch(() => {})
 
       return {
         success: true,
@@ -74,6 +74,7 @@ class FileService {
         fileUrl: `${process.env.APPWRITE_ENDPOINT}/storage/buckets/${this.bucketId}/files/${data.$id}/view?project=${process.env.APPWRITE_PROJECT_ID}`
       }
     } catch (error) {
+      console.error('File upload failed:', error.message)
       return { success: false, error: error.message }
     }
   }

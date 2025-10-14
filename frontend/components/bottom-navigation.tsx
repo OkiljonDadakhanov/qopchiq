@@ -24,8 +24,9 @@ export default function BottomNavigation() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-100 bg-white shadow-md">
-      <div className="flex items-center justify-around py-2">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[env(safe-area-inset-bottom,0px)]">
+      <div className="pointer-events-auto mx-auto mb-3 w-full max-w-md rounded-t-3xl border border-gray-100 bg-white/95 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur">
+        <div className="flex items-center justify-around px-2 py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -34,8 +35,10 @@ export default function BottomNavigation() {
             <button
               key={item.id}
               onClick={() => router.push(item.route)}
-              className={`flex flex-col items-center gap-1 px-4 py-1 transition-colors ${
-                isActive ? "text-[#00B14F]" : "text-gray-400"
+              className={`flex flex-col items-center gap-1 rounded-2xl px-4 py-1 transition-all ${
+                isActive
+                  ? "text-[#00B14F]"
+                  : "text-gray-400 hover:text-gray-600"
               }`}
             >
               <Icon className="w-6 h-6" />
@@ -46,6 +49,7 @@ export default function BottomNavigation() {
             </button>
           );
         })}
+      </div>
       </div>
     </div>
   );
