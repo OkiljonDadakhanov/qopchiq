@@ -30,6 +30,7 @@ export const uploadFile = async (formData: FormData, folder = "general"): Promis
       headers: {
         // Allow browser to attach the correct boundary, only hint the type
         "Accept": "application/json",
+        "Content-Type": "multipart/form-data",
       },
     });
     
