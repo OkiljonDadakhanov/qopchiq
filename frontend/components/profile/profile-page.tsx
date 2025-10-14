@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import {
   ArrowLeft,
@@ -24,16 +24,17 @@ export default function ProfilePage() {
   const customToast = useCustomToast()
   const { toast } = useToast()
 
-  const { data: profile, status, error, refetch } = useFetchProfile()
-
-  // ✅ Refetch profile on mount
-  useEffect(() => {
-    refetch()
-  }, [refetch])
+  const {
+    data: profile,
+    status,
+    error,
+    isFetching,
+    isPlaceholderData,
+  } = useFetchProfile()
 
   // ✅ Sync React Query → Zustand
   useEffect(() => {
-    if (status === "success" && profile) {
+    if (status === "success" && profile && !isPlaceholderData) {
       setUser({
         name: profile.name,
         email: profile.email,
@@ -43,21 +44,7 @@ export default function ProfilePage() {
         avatar: profile.avatar,
       })
     }
-  }, [status, profile, setUser, user?.token])
-
-  // ✅ Refetch when page regains focus
-  useEffect(() => {
-    const handleFocus = () => refetch()
-    const handleVisibilityChange = () => {
-      if (!document.hidden) refetch()
-    }
-    window.addEventListener("focus", handleFocus)
-    document.addEventListener("visibilitychange", handleVisibilityChange)
-    return () => {
-      window.removeEventListener("focus", handleFocus)
-      document.removeEventListener("visibilitychange", handleVisibilityChange)
-    }
-  }, [refetch])
+  }, [status, profile, isPlaceholderData, setUser, user?.token])
 
   const handleDelete = () => {
     toast({
@@ -98,7 +85,7 @@ export default function ProfilePage() {
   }
 
   // ✅ Loading state
-  if (!hasHydrated || status === "pending") {
+  if (!hasHydrated || (status === "pending" && !profile)) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen text-gray-500">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00B14F] mb-4"></div>
@@ -134,9 +121,15 @@ export default function ProfilePage() {
   }
 
   // ✅ Determine Appwrite avatar URL
-  const avatarUrl =
-    profile?.avatar?.url ||
-    (typeof profile?.avatar === "string" ? profile.avatar : null)
+  const avatarUrl = useMemo(() => {
+    if (!profile?.avatar) return null
+
+    if (typeof profile.avatar === "string") {
+      return profile.avatar
+    }
+
+    return profile.avatar.url || null
+  }, [profile?.avatar])
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -146,6 +139,9 @@ export default function ProfilePage() {
           <ArrowLeft className="w-6 h-6" />
         </button>
         <h1 className="text-xl font-bold">Your profile</h1>
+        {isFetching && !isPlaceholderData ? (
+          <span className="ml-auto text-sm text-gray-400">Refreshing…</span>
+        ) : null}
       </div>
 
       {/* Content */}
