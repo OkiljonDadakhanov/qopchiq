@@ -24,6 +24,15 @@ app.use(cors(corsOptions));
 app.use(express.json()); // allows us to parse incoming requests:req.body
 app.use(cookieParser()); // allows us to parse incoming cookies
 
+app.use(async (req, res, next) => {
+        try {
+                await connectDB();
+                next();
+        } catch (error) {
+                next(error);
+        }
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/business", businessRoutes);
@@ -39,7 +48,15 @@ app.use(errorHandler);
 // 	});
 // }
 
-app.listen(PORT, "0.0.0.0", () => {
-	connectDB();
-	console.log("Server is running on port: ", PORT);
-});
+const startServer = async () => {
+        try {
+                await connectDB();
+                app.listen(PORT, "0.0.0.0", () => {
+                        console.log("Server is running on port: ", PORT);
+                });
+        } catch (error) {
+                console.error("Failed to start the server:", error.message);
+        }
+};
+
+startServer();
