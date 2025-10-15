@@ -5,7 +5,64 @@ import StorageService from "./storage.service.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
+import MailService from "./mail.service.js";
+import TokenService from "./token.service.js";
+
+
 class BusinessService {
+	async login(email, password) {
+		if (!email || !password) throw BaseError.BadRequestError("Email and password are required");
+
+		const business = await Business.findOne({ email });
+		if (!business) throw BaseError.BadRequestError("Invalid credentials");
+
+		const isPasswordValid = await bcrypt.compare(password, business.password);
+		if (!isPasswordValid) throw BaseError.BadRequestError("Invalid credentials");
+
+		business.lastLogin = new Date();
+		await business.save();
+
+		const businessDto = new BusinessDto(business);
+		const { accessToken, refreshToken } = TokenService.generateToken({ id: business._id, email: business.email, type: 'business' });
+		await TokenService.saveToken(business._id, refreshToken);
+		return { business: businessDto, accessToken, refreshToken };
+	}
+	async signup({ name, email, password, phoneNumber, description, address }) {
+		if (!name || !email || !password) {
+			throw BaseError.BadRequestError("Name, email and password are required");
+		}
+
+		const existing = await Business.findOne({ email });
+		if (existing) throw BaseError.BadRequestError("Business with this email already exists");
+
+		const saltRounds = 12;
+		const hashed = await bcrypt.hash(password, saltRounds);
+
+		const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+
+		const business = new Business({
+			name,
+			email,
+			password: hashed,
+			phoneNumber,
+			description,
+			address,
+			verificationToken,
+			verificationTokenExpiresAt: Date.now() + (Number(process.env.VERIFICATION_TTL_MINUTES || 10) * 60 * 1000),
+			lastVerificationSentAt: new Date(),
+			dailyVerificationSentCount: 1,
+		});
+
+		await business.save();
+
+		// send verification email
+		try { await MailService.sendVerificationEmail(business.email, verificationToken); } catch (e) { /* don't block signup */ }
+
+	const businessDto = new BusinessDto(business);
+		const { accessToken, refreshToken } = TokenService.generateToken({ id: business._id, email: business.email, type: 'business' });
+		await TokenService.saveToken(business._id, refreshToken);
+		return { business: businessDto, accessToken, refreshToken };
+	}
 	async getMe(businessId) {
 		const business = await Business.findById(businessId);
 		if (!business) throw BaseError.NotFoundError("Business not found");
