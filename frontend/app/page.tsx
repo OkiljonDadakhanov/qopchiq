@@ -24,7 +24,9 @@ export default function LandingPage() {
                 className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
                 priority
               />
-            
+              <span className="font-semibold text-xl text-gray-900 hidden sm:block">
+                Qopchiq
+              </span>
             </Link>
 
             {/* Desktop Nav */}
@@ -98,72 +100,94 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="pt-28 sm:pt-36 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Text */}
-          <div className="order-2 lg:order-1">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-[#00B14F] text-sm font-medium mb-5 sm:mb-6">
-              <Leaf className="w-4 h-4" />
-              Save food. Save money. Save the planet.
-            </div>
-            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-5 leading-tight">
-              Rescue surplus food at amazing prices
-            </h1>
-            <p className="text-lg sm:text-xl text-gray-600 mb-8 leading-relaxed">
-              Connect with local restaurants and stores to buy delicious surplus
-              food at up to 70% off. Fight food waste while enjoying great meals.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                href="/onboarding"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#00B14F] px-8 py-4 text-base font-semibold text-white hover:bg-[#009940] transition-colors"
-              >
-                Start saving now
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link
-                href="/business/signup"
-                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#00B14F] px-8 py-4 text-base font-semibold text-[#00B14F] hover:bg-green-50 transition-colors"
-              >
-                Join as business
-              </Link>
-            </div>
-
-            {/* Stats */}
-            <div className="mt-12 grid grid-cols-3 gap-6 sm:gap-8 text-center sm:text-left">
-              <div>
-                <div className="text-2xl sm:text-3xl font-bold text-gray-900">50K+</div>
-                <div className="text-sm text-gray-600 mt-1">Meals saved</div>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Text */}
+            <div className="lg:order-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-[#00B14F] text-sm font-medium mb-5 sm:mb-6">
+                <Leaf className="w-4 h-4" />
+                Save food. Save money. Save the planet.
               </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-bold text-gray-900">200+</div>
-                <div className="text-sm text-gray-600 mt-1">Partners</div>
+              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-5 leading-tight">
+                Rescue surplus food at amazing prices
+              </h1>
+              <p className="text-lg sm:text-xl text-gray-600 mb-8 leading-relaxed">
+                Connect with local restaurants and stores to buy delicious surplus
+                food at up to 70% off. Fight food waste while enjoying great meals.
+              </p>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  href="/onboarding"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#00B14F] px-8 py-4 text-base font-semibold text-white hover:bg-[#009940] transition-colors"
+                >
+                  Start saving now
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                <Link
+                  href="/business/signup"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#00B14F] px-8 py-4 text-base font-semibold text-[#00B14F] hover:bg-green-50 transition-colors"
+                >
+                  Join as business
+                </Link>
               </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-bold text-gray-900">15K</div>
-                <div className="text-sm text-gray-600 mt-1">Happy users</div>
+
+              {/* Stats */}
+              <div className="mt-12 grid grid-cols-3 gap-6 sm:gap-8 text-center sm:text-left">
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900">50K+</div>
+                  <div className="text-sm text-gray-600 mt-1">Meals saved</div>
+                </div>
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900">200+</div>
+                  <div className="text-sm text-gray-600 mt-1">Partners</div>
+                </div>
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900">15K</div>
+                  <div className="text-sm text-gray-600 mt-1">Happy users</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Hero Image - Desktop only */}
+            <div className="hidden lg:flex lg:order-2 relative justify-center items-center">
+              <div className="relative inline-block max-w-full">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-green-100 to-green-200 rounded-[2.5rem] blur-3xl opacity-40 scale-110" />
+                <div className="relative bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-4 sm:p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all">
+                  <Image
+                    src="/phone.png"
+                    alt="Qopchiq App Screenshot"
+                    width={600}
+                    height={600}
+                    className="w-full max-w-[350px] sm:max-w-[400px] lg:max-w-[500px] mx-auto rounded-3xl drop-shadow-2xl"
+                    priority
+                  />
+                </div>
+                <div className="absolute -top-4 -left-4 text-2xl sm:text-3xl animate-bounce">🍎</div>
+                <div className="absolute -bottom-6 -right-2 sm:right-0 text-2xl sm:text-3xl animate-bounce" style={{ animationDelay: "0.6s" }}>🥦</div>
+                <div className="absolute top-8 sm:top-10 -right-4 sm:-right-6 text-2xl sm:text-3xl animate-bounce" style={{ animationDelay: "1.2s" }}>💚</div>
               </div>
             </div>
           </div>
 
-          {/* Hero Image */}
-          <div className="order-1 lg:order-2 relative flex justify-center items-center">
+          {/* Hero Image - Mobile only (below stats) */}
+          <div className="lg:hidden mt-12 relative flex justify-center items-center">
             <div className="relative inline-block max-w-full">
               <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-green-100 to-green-200 rounded-[2.5rem] blur-3xl opacity-40 scale-110" />
-              <div className="relative bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-4 sm:p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all">
+              <div className="relative bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all">
                 <Image
                   src="/phone.png"
                   alt="Qopchiq App Screenshot"
                   width={600}
                   height={600}
-                  className="w-full max-w-[350px] sm:max-w-[400px] lg:max-w-[500px] mx-auto rounded-3xl drop-shadow-2xl"
+                  className="w-full max-w-[350px] sm:max-w-[400px] mx-auto rounded-3xl drop-shadow-2xl"
                   priority
                 />
               </div>
-              <div className="absolute -top-4 -left-4 text-2xl sm:text-3xl animate-bounce">🍎</div>
-              <div className="absolute -bottom-6 -right-2 sm:right-0 text-2xl sm:text-3xl animate-bounce" style={{ animationDelay: "0.6s" }}>🥦</div>
-              <div className="absolute top-8 sm:top-10 -right-4 sm:-right-6 text-2xl sm:text-3xl animate-bounce" style={{ animationDelay: "1.2s" }}>💚</div>
+              <div className="absolute -top-4 -left-4 text-2xl animate-bounce">🍎</div>
+              <div className="absolute -bottom-6 -right-2 text-2xl animate-bounce" style={{ animationDelay: "0.6s" }}>🥦</div>
+              <div className="absolute top-8 -right-4 text-2xl animate-bounce" style={{ animationDelay: "1.2s" }}>💚</div>
             </div>
           </div>
         </div>
