@@ -156,90 +156,134 @@ export default function EditProfileForm() {
   const isDirty = form.formState.isDirty || !!avatarFile
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <div className="sticky top-0 z-30 bg-white px-6 py-4 flex items-center gap-4 border-b border-gray-100 shadow-sm">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft />
-        </Button>
-        <h1 className="text-lg font-semibold">Edit profile</h1>
-      </div>
-
-      <form className="flex-1 overflow-y-auto px-6 py-8 pb-36 space-y-8" onSubmit={onSubmit}>
-        <AvatarUploader
-          previewUrl={avatarPreview}
-          isUploading={updateAvatarMutation.isPending}
-          onPick={onAvatarPick}
-          disabled={isProfileLoading}
-        />
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
-          disabled={updateAvatarMutation.isPending}
-        />
-
-        <div className="space-y-6">
-          <FormField
-            id="name"
-            label="Name"
-            type="text"
-            placeholder="Enter your name"
-            value={form.watch("name")}
-            onChange={(event) => form.setValue("name", event.target.value, { shouldDirty: true })}
-            icon={<User className="w-4 h-4" />}
-            error={form.formState.errors.name?.message}
-          />
-
-          <FormField
-            id="email"
-            label="Email"
-            type="email"
-            placeholder="Enter your email"
-            value={form.watch("email")}
-            onChange={(event) => form.setValue("email", event.target.value, { shouldDirty: true })}
-            icon={<Mail className="w-4 h-4" />}
-            error={form.formState.errors.email?.message}
-          />
-
-          <div>
-            <Label htmlFor="phone" className="text-sm font-medium text-gray-700 mb-2 block">
-              Phone number
-            </Label>
-            <div className="flex gap-2">
-              <Input value="+998" className="h-12 rounded-lg border-gray-300 w-24 text-center bg-gray-50" disabled />
-              <div className="flex-1 relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="90 123 45 67"
-                  value={form.watch("phone")}
-                  onChange={(event) => form.setValue("phone", normalizePhone(event.target.value), { shouldDirty: true })}
-                  className="h-12 rounded-lg border-gray-300 pl-10"
-                />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Enter your phone number without the country code (+998)</p>
-            {form.formState.errors.phone?.message ? (
-              <p className="text-xs text-red-500 mt-1">{form.formState.errors.phone.message}</p>
-            ) : null}
-          </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-0 lg:p-4">
+      {/* Mobile Container - Always centered on desktop */}
+      <div className="w-full max-w-md bg-white min-h-screen lg:min-h-0 lg:rounded-3xl lg:shadow-2xl lg:overflow-hidden flex flex-col">
+        
+        {/* Header */}
+        <div className="sticky top-0 z-30 bg-white px-4 py-3 flex items-center gap-3 border-b border-gray-100">
+          <button 
+            onClick={() => router.back()}
+            className="p-1.5 -ml-1.5 hover:bg-gray-50 rounded-lg transition-colors"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-lg font-bold">Edit profile</h1>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 px-6 py-5 bg-white border-t border-gray-100 shadow-lg">
+        {/* Form Content */}
+        <form className="flex-1 overflow-y-auto px-4 py-5 pb-24 space-y-6" onSubmit={onSubmit}>
+          
+          {/* Avatar Section */}
+          <div className="flex justify-center py-2">
+            <AvatarUploader
+              previewUrl={avatarPreview}
+              isUploading={updateAvatarMutation.isPending}
+              onPick={onAvatarPick}
+              disabled={isProfileLoading}
+            />
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+            disabled={updateAvatarMutation.isPending}
+          />
+
+          {/* Form Fields */}
+          <div className="space-y-4">
+            
+            {/* Name Field */}
+            <div>
+              <Label htmlFor="name" className="text-xs font-medium text-gray-700 mb-1.5 block">
+                Name
+              </Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Enter your name"
+                  value={form.watch("name")}
+                  onChange={(event) => form.setValue("name", event.target.value, { shouldDirty: true })}
+                  className="h-11 rounded-xl border-gray-300 pl-10 text-sm"
+                />
+              </div>
+              {form.formState.errors.name?.message && (
+                <p className="text-xs text-red-500 mt-1.5">{form.formState.errors.name.message}</p>
+              )}
+            </div>
+
+            {/* Email Field */}
+            <div>
+              <Label htmlFor="email" className="text-xs font-medium text-gray-700 mb-1.5 block">
+                Email
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={form.watch("email")}
+                  onChange={(event) => form.setValue("email", event.target.value, { shouldDirty: true })}
+                  className="h-11 rounded-xl border-gray-300 pl-10 text-sm"
+                />
+              </div>
+              {form.formState.errors.email?.message && (
+                <p className="text-xs text-red-500 mt-1.5">{form.formState.errors.email.message}</p>
+              )}
+            </div>
+
+            {/* Phone Field */}
+            <div>
+              <Label htmlFor="phone" className="text-xs font-medium text-gray-700 mb-1.5 block">
+                Phone number
+              </Label>
+              <div className="flex gap-2">
+                <Input 
+                  value="+998" 
+                  className="h-11 rounded-xl border-gray-300 w-20 text-center bg-gray-50 text-sm font-medium" 
+                  disabled 
+                />
+                <div className="flex-1 relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="90 123 45 67"
+                    value={form.watch("phone")}
+                    onChange={(event) => form.setValue("phone", normalizePhone(event.target.value), { shouldDirty: true })}
+                    className="h-11 rounded-xl border-gray-300 pl-10 text-sm"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1.5">Enter without country code</p>
+              {form.formState.errors.phone?.message && (
+                <p className="text-xs text-red-500 mt-1.5">{form.formState.errors.phone.message}</p>
+              )}
+            </div>
+
+          </div>
+        </form>
+
+        {/* Fixed Bottom Button */}
+        <div className="sticky bottom-0 px-4 py-3.5 bg-white border-t border-gray-100 shadow-lg">
           <Button
             type="submit"
+            onClick={onSubmit}
             disabled={!isDirty || isSaving}
-            className="w-full h-14 bg-[#00B14F] hover:bg-[#009940] text-white rounded-2xl text-base font-semibold"
+            className="w-full h-11 bg-[#00B14F] hover:bg-[#009940] text-white rounded-full text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? "Saving..." : "Save changes"}
           </Button>
         </div>
-      </form>
+
+      </div>
     </div>
   )
 }
-
