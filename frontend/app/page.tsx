@@ -24,9 +24,7 @@ export default function LandingPage() {
                 className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
                 priority
               />
-              <span className="font-semibold text-xl text-gray-900 hidden sm:block">
-                Qopchiq
-              </span>
+            
             </Link>
 
             {/* Desktop Nav */}
@@ -88,7 +86,7 @@ export default function LandingPage() {
                 </Link>
                 <Link
                   href="/onboarding"
-                  className="rounded-full bg-[#00B14F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#009940]"
+                  className="rounded-full bg-[#00B14F] px-5 py-2 text-sm font-semibold text-white hover:bg-[#009940] text-center"
                 >
                   Get started
                 </Link>
@@ -100,9 +98,9 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="pt-28 sm:pt-36 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Text */}
-          <div>
+          <div className="order-2 lg:order-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-[#00B14F] text-sm font-medium mb-5 sm:mb-6">
               <Leaf className="w-4 h-4" />
               Save food. Save money. Save the planet.
@@ -133,7 +131,7 @@ export default function LandingPage() {
             </div>
 
             {/* Stats */}
-            <div className="mt-12 grid grid-cols-3 sm:grid-cols-3 gap-6 sm:gap-8 text-center sm:text-left">
+            <div className="mt-12 grid grid-cols-3 gap-6 sm:gap-8 text-center sm:text-left">
               <div>
                 <div className="text-2xl sm:text-3xl font-bold text-gray-900">50K+</div>
                 <div className="text-sm text-gray-600 mt-1">Meals saved</div>
@@ -150,19 +148,22 @@ export default function LandingPage() {
           </div>
 
           {/* Hero Image */}
-          <div className="relative flex justify-center items-center mt-10 lg:mt-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-green-100 to-green-200 rounded-[2.5rem] blur-3xl opacity-40" />
-            <div className="relative bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all">
-              <Image
-                src="/phone.png"
-                alt="Qopchiq App Screenshot"
-                width={350}
-                height={350}
-                className="w-5/6 sm:w-2/3 mx-auto rounded-3xl drop-shadow-2xl"
-              />
-              <div className="absolute -top-4 -left-4 text-3xl animate-bounce">🍎</div>
-              <div className="absolute -bottom-6 right-0 text-3xl animate-bounce" style={{ animationDelay: "0.6s" }}>🥦</div>
-              <div className="absolute top-10 -right-6 text-3xl animate-bounce" style={{ animationDelay: "1.2s" }}>💚</div>
+          <div className="order-1 lg:order-2 relative flex justify-center items-center">
+            <div className="relative inline-block max-w-full">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-green-100 to-green-200 rounded-[2.5rem] blur-3xl opacity-40 scale-110" />
+              <div className="relative bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-4 sm:p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all">
+                <Image
+                  src="/phone.png"
+                  alt="Qopchiq App Screenshot"
+                  width={600}
+                  height={600}
+                  className="w-full max-w-[350px] sm:max-w-[400px] lg:max-w-[500px] mx-auto rounded-3xl drop-shadow-2xl"
+                  priority
+                />
+              </div>
+              <div className="absolute -top-4 -left-4 text-2xl sm:text-3xl animate-bounce">🍎</div>
+              <div className="absolute -bottom-6 -right-2 sm:right-0 text-2xl sm:text-3xl animate-bounce" style={{ animationDelay: "0.6s" }}>🥦</div>
+              <div className="absolute top-8 sm:top-10 -right-4 sm:-right-6 text-2xl sm:text-3xl animate-bounce" style={{ animationDelay: "1.2s" }}>💚</div>
             </div>
           </div>
         </div>
@@ -181,7 +182,7 @@ export default function LandingPage() {
               { icon: ShoppingBag, title: "Reserve your meal", text: "Choose and reserve meals easily through the app." },
               { icon: Leaf, title: "Pick up and enjoy", text: "Collect your food and make a positive impact." },
             ].map((step, i) => (
-              <div key={i} className="bg-white rounded-2xl p-8 text-center">
+              <div key={i} className="bg-white rounded-2xl p-8 text-center hover:shadow-lg transition-shadow">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
                   <step.icon className="w-7 h-7 text-[#00B14F]" />
                 </div>
@@ -196,7 +197,7 @@ export default function LandingPage() {
 
       {/* Impact */}
       <section id="impact" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
               Your impact in numbers
@@ -225,7 +226,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-10 sm:p-12 text-center">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-10 sm:p-12 text-center hover:shadow-lg transition-shadow">
             <Image src="/logo.png" alt="Impact" width={200} height={200} className="w-32 sm:w-48 mx-auto mb-6" />
             <div className="text-4xl sm:text-5xl font-bold text-gray-900 mb-2">25 tons</div>
             <div className="text-lg text-gray-600 mb-8">of CO₂ saved this month</div>
@@ -259,7 +260,7 @@ export default function LandingPage() {
               btnText: "text-white",
             },
           ].map((cta, i) => (
-            <div key={i} className={`${cta.bg} rounded-3xl p-10 sm:p-12 text-center`}>
+            <div key={i} className={`${cta.bg} rounded-3xl p-10 sm:p-12 text-center hover:scale-[1.02] transition-transform`}>
               <h2 className={`font-serif text-3xl sm:text-4xl font-bold ${cta.textColor} mb-4`}>
                 {cta.title}
               </h2>
@@ -278,24 +279,24 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer id="about" className="py-12 px-4 sm:px-6 lg:px-8 bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-8 mb-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
           <div>
             <p className="text-sm text-gray-400">Fighting food waste, one meal at a time.</p>
           </div>
           <div>
             <h4 className="font-semibold mb-4">Product</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="#how-it-works" className="hover:text-white">How it works</a></li>
-              <li><a href="#impact" className="hover:text-white">Our impact</a></li>
-              <li><Link href="/feed" className="hover:text-white">Browse offers</Link></li>
+              <li><a href="#how-it-works" className="hover:text-white transition-colors">How it works</a></li>
+              <li><a href="#impact" className="hover:text-white transition-colors">Our impact</a></li>
+              <li><Link href="/feed" className="hover:text-white transition-colors">Browse offers</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/faq" className="hover:text-white">FAQ</Link></li>
-              <li><Link href="/terms" className="hover:text-white">Terms</Link></li>
-              <li><Link href="/privacy" className="hover:text-white">Privacy</Link></li>
+              <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+              <li><Link href="/terms" className="hover:text-white transition-colors">Terms</Link></li>
+              <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link></li>
             </ul>
           </div>
           <div>
