@@ -41,6 +41,7 @@ export interface MenuItem {
 export interface CO2ModalProps {
   isOpen: boolean
   onClose: () => void
+  co2SavedKg?: number
 }
 
 export interface CTACardProps {

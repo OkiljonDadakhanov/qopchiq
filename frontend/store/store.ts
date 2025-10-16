@@ -35,9 +35,9 @@ interface ExtendedAppState extends AppState {
 // ===========================
 
 const DEFAULT_STATS: UserStats = {
-  packagesRescued: 0,
-  co2Saved: 0,
-  moneySaved: 0,
+  packagesRescued: 3,
+  co2Saved: 1,
+  moneySaved: 75000,
 }
 
 // ===========================
