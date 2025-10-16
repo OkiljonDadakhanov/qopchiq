@@ -3,6 +3,7 @@ dotenv.config();
 
 import AuthService from "../services/auth.service.js";
 import { setRefreshTokenCookie } from "../utils/cookies.js";
+import BusinessService from "../services/business.service.js";
 
 export const signup = async (req, res, next) => {
 	try {
@@ -85,6 +86,17 @@ export const refresh = async (req, res, next) => {
 		const data = await AuthService.refresh(refreshToken);
 		setRefreshTokenCookie(res, data.refreshToken);
 		return res.status(200).json({ success: true, accessToken: data.accessToken });
+	} catch (error) {
+		return next(error);
+	}
+};
+
+export const businessSignup = async (req, res, next) => {
+	try {
+		const { name, email, password, phoneNumber, description, address } = req.body;
+		const data = await BusinessService.signup({ name, email, password, phoneNumber, description, address });
+		setRefreshTokenCookie(res, data.refreshToken);
+		return res.status(201).json({ success: true, message: "Business created successfully", business: data.business, accessToken: data.accessToken });
 	} catch (error) {
 		return next(error);
 	}
