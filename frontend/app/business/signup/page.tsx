@@ -19,6 +19,9 @@ const signupSchema = z.object({
   email: z.string().email("Enter a valid email address"),
   phone: z.string().min(7, "Enter a valid phone number"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  description: z.string().optional(),
+  address: z.string().optional(),
+  businessType: z.string().optional(),
 })
 
 type SignupValues = z.infer<typeof signupSchema>
@@ -39,21 +42,29 @@ export default function BusinessSignupPage() {
       email: "",
       phone: "",
       password: "",
+      description: "",
+      address: "",
+      businessType: "restaurant",
     },
   })
 
   const onSubmit = async (values: SignupValues) => {
     try {
-      await signupMutation.mutateAsync({
+      const result = await signupMutation.mutateAsync({
         name: values.businessName.trim(),
         email: values.email.trim(),
         password: values.password,
         phoneNumber: values.phone.replace(/\s+/g, ""),
+        description: values.description?.trim(),
+        address: values.address?.trim(),
+        businessType: values.businessType,
       })
 
-      toast.success("Account created", "Check your email to verify your business account")
-      router.push("/business/onboarding")
+      console.log('Signup result:', result);
+      toast.success("Account created", "Business account created successfully!")
+      router.push("/business/dashboard")
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast.error("Sign up failed", error?.message ?? "Unable to create account. Please try again.")
     }
   }
@@ -119,6 +130,28 @@ export default function BusinessSignupPage() {
                   {...register("password")}
                 />
                 {errors.password?.message ? <p className="text-xs text-red-500 mt-1">{errors.password.message}</p> : null}
+              </div>
+
+              <div>
+                <Label htmlFor="description">Business description (optional)</Label>
+                <Input
+                  id="description"
+                  type="text"
+                  placeholder="Brief description of your business"
+                  {...register("description")}
+                />
+                {errors.description?.message ? <p className="text-xs text-red-500 mt-1">{errors.description.message}</p> : null}
+              </div>
+
+              <div>
+                <Label htmlFor="address">Business address (optional)</Label>
+                <Input
+                  id="address"
+                  type="text"
+                  placeholder="Your business address"
+                  {...register("address")}
+                />
+                {errors.address?.message ? <p className="text-xs text-red-500 mt-1">{errors.address.message}</p> : null}
               </div>
 
               <Button type="submit" className="w-full bg-[#00B14F] hover:bg-[#009940]" disabled={isLoading}>

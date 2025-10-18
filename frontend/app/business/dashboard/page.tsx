@@ -14,9 +14,22 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useBusinessProfile } from "@/hooks/business-auth";
+import { useBusinessToken, useBusinessAccount } from "@/store/business-store";
 
 export default function BusinessDashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
+  const { data: businessData, isLoading, error } = useBusinessProfile();
+  const token = useBusinessToken();
+  const businessAccount = useBusinessAccount();
+
+  // Debug logging
+  console.log('Dashboard state:', { 
+    hasToken: !!token, 
+    hasBusinessAccount: !!businessAccount,
+    isLoading,
+    error: error?.message 
+  });
 
   const stats = [
     { label: "Active listings", value: "12", change: "+2 this week", icon: Package },
@@ -30,6 +43,29 @@ export default function BusinessDashboardPage() {
     { id: "2", customer: "Dilnoza S.", item: "Bakery box", time: "25 mins ago", status: "ready" },
     { id: "3", customer: "Jasur M.", item: "Lunch combo", time: "1 hour ago", status: "completed" },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#00B14F] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">Failed to load business data</p>
+        </div>
+      </div>
+    );
+  }
+
+  const business = businessData?.business;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -47,8 +83,11 @@ export default function BusinessDashboardPage() {
                 className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16"
               />
               <div className="hidden sm:block">
-                <h1 className="font-bold text-gray-900 text-lg sm:text-xl">Green Cafe</h1>
-                <p className="text-xs text-gray-500">Business Dashboard</p>
+                <h1 className="font-bold text-gray-900 text-lg sm:text-xl">{business?.name || "Business"}</h1>
+                <p className="text-xs text-gray-500">
+                  {business?.isVerified ? "Verified Business" : "Business Dashboard"}
+                  {business?.isApproved ? " • Approved" : " • Pending Approval"}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">

@@ -11,6 +11,7 @@ import type {
 const BUSINESS_ENDPOINTS = {
   signup: "/api/auth/business/signup",
   login: "/api/auth/business/login",
+  me: "/api/business/me",
 }
 
 const persistBusinessSession = (data: BusinessAuthResponse) => {
@@ -18,6 +19,10 @@ const persistBusinessSession = (data: BusinessAuthResponse) => {
   setBusiness({
     business: data.business ?? null,
     token: data.accessToken ?? null,
+  })
+  console.log('Business session persisted:', { 
+    businessId: data.business?.id, 
+    hasToken: !!data.accessToken 
   })
 }
 
@@ -65,5 +70,14 @@ export const loginBusiness = async (
 export const logoutBusiness = () => {
   const { clear } = useBusinessStore.getState()
   clear()
+}
+
+export const getBusinessProfile = async (): Promise<{ success: boolean; business: BusinessAccount }> => {
+  try {
+    const { data } = await client.get<{ success: boolean; business: BusinessAccount }>(BUSINESS_ENDPOINTS.me)
+    return data
+  } catch (error) {
+    return handleBusinessError(error)
+  }
 }
 

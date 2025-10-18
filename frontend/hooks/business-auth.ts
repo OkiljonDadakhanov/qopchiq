@@ -1,10 +1,11 @@
 "use client"
 
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 
 import {
   loginBusiness,
   signupBusiness,
+  getBusinessProfile,
 } from "@/api/services/business-auth"
 import type {
   BusinessAuthResponse,
@@ -21,6 +22,14 @@ export const useBusinessSignup = () => {
 export const useBusinessLogin = () => {
   return useMutation<BusinessAuthResponse, Error, BusinessLoginPayload>({
     mutationFn: loginBusiness,
+  })
+}
+
+export const useBusinessProfile = () => {
+  return useQuery({
+    queryKey: ["business-profile"],
+    queryFn: getBusinessProfile,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }
 

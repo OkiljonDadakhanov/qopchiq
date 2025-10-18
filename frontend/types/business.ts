@@ -5,7 +5,13 @@ export interface BusinessAccount {
   phoneNumber?: string
   description?: string
   address?: string
-  avatar?: string | { id: string; url: string }
+  avatar?: string | null
+  location?: {
+    type: string
+    coordinates: number[]
+  }
+  documents?: any[]
+  lastLogin?: string
   isVerified?: boolean
   isApproved?: boolean
   createdAt?: string
