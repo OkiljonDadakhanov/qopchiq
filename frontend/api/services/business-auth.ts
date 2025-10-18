@@ -3,6 +3,7 @@ import axios from "axios"
 import client from "@/api/client"
 import { useBusinessStore } from "@/store/business-store"
 import type {
+  BusinessAccount,
   BusinessAuthResponse,
   BusinessLoginPayload,
   BusinessSignupPayload,
