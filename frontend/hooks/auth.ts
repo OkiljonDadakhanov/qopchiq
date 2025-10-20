@@ -6,6 +6,7 @@ import {
   logoutUser,
   forgotPassword,
   resetPassword,
+  resendVerification,
 } from "@/api/services/auth"
 import type { SignUpCredentials, LoginCredentials } from "@/types/types"
 import { useAppStore } from "@/store/store"
@@ -115,6 +116,19 @@ export const useResetPassword = () => {
     },
     onError: (error) => {
       console.error("Password reset failed:", error)
+    },
+  })
+}
+
+// ✅ Resend verification mutation
+export const useResendVerification = () => {
+  return useMutation({
+    mutationFn: ({ email }: { email: string }) => resendVerification({ email }),
+    onSuccess: () => {
+      console.log("Verification code resent successfully")
+    },
+    onError: (error) => {
+      console.error("Resend verification failed:", error)
     },
   })
 }

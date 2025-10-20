@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
+import { useResendVerification } from "@/hooks/auth"
+import { useUserEmail } from "@/store/store"
 
 
 
@@ -13,8 +15,64 @@ export default function VerifyEmailPage() {
   const [code, setCode] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [resendTimer, setResendTimer] = useState(0)
+  const [canResend, setCanResend] = useState(false)
+  
   const router = useRouter()
   const { toast } = useToast()
+  const userEmail = useUserEmail()
+  const resendVerificationMutation = useResendVerification()
+
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            setCanResend(true)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    }
+
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [resendTimer])
+
+  // Start timer on component mount
+  useEffect(() => {
+    setResendTimer(60)
+    setCanResend(false)
+  }, [])
+
+  const handleResendCode = async () => {
+    if (!userEmail || !canResend) return
+
+    try {
+      await resendVerificationMutation.mutateAsync({ email: userEmail })
+      
+      toast({
+        title: "✅ Kod qayta yuborildi",
+        description: "Tasdiqlash kodi emailingizga qayta yuborildi.",
+        duration: 3000,
+      })
+
+      // Reset timer
+      setResendTimer(60)
+      setCanResend(false)
+    } catch (error: any) {
+      toast({
+        title: "❌ Xatolik",
+        description: error.message || "Kod qayta yuborishda xatolik yuz berdi.",
+        duration: 3000,
+      })
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,7 +80,7 @@ export default function VerifyEmailPage() {
     setLoading(true)
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-email`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/auth/verify-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
@@ -35,15 +93,15 @@ export default function VerifyEmailPage() {
       }
 
       toast({
-        title: "✅ Verified Successfully",
-        description: "Your email has been verified. Redirecting to your feed...",
+        title: "✅ Muvaffaqiyatli tasdiqlandi",
+        description: "Emailingiz tasdiqlandi. Feed sahifasiga yo'naltirilmoqda...",
         duration: 3000,
       })
 
       setCode("")
       setTimeout(() => router.push("/feed"), 2500)
     } catch (err: any) {
-      setError(err.message || "Failed to verify email.")
+      setError(err.message || "Email tasdiqlashda xatolik yuz berdi.")
     } finally {
       setLoading(false)
     }
@@ -59,9 +117,9 @@ export default function VerifyEmailPage() {
           height={120}
           className="mx-auto"
         />
-        <h1 className="mt-4 text-2xl font-semibold text-gray-900">Verify Your Email</h1>
+        <h1 className="mt-4 text-2xl font-semibold text-gray-900">Emailingizni tasdiqlang</h1>
         <p className="mt-2 text-sm text-gray-600">
-          Enter the verification code sent to your email.
+          Emailingizga yuborilgan tasdiqlash kodini kiriting.
         </p>
       </div>
 
@@ -71,7 +129,7 @@ export default function VerifyEmailPage() {
       >
         <div>
           <label htmlFor="code" className="mb-2 block text-sm font-medium text-gray-700">
-            Verification Code
+            Tasdiqlash kodi
           </label>
           <Input
             id="code"
@@ -89,20 +147,27 @@ export default function VerifyEmailPage() {
           className="h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943]"
           disabled={loading}
         >
-          {loading ? "Verifying..." : "VERIFY EMAIL"}
+          {loading ? "Tasdiqlanmoqda..." : "EMAIL TASDIQLASH"}
         </Button>
 
         {error && <p className="text-sm text-red-600 text-center">{error}</p>}
 
         <div className="text-center text-sm text-gray-600">
-          Didn’t receive the code?{" "}
-          <button
-            type="button"
-            className="font-semibold text-[#00B14F] hover:underline"
-            onClick={() => alert("Resend code feature coming soon")}
-          >
-            Resend
-          </button>
+          Kodni olmadingizmi?{" "}
+          {canResend ? (
+            <button
+              type="button"
+              className="font-semibold text-[#00B14F] hover:underline disabled:opacity-50"
+              onClick={handleResendCode}
+              disabled={resendVerificationMutation.isPending}
+            >
+              {resendVerificationMutation.isPending ? "Yuborilmoqda..." : "Qayta yuborish"}
+            </button>
+          ) : (
+            <span className="text-gray-500">
+              Qayta yuborish ({resendTimer}s)
+            </span>
+          )}
         </div>
       </form>
     </div>

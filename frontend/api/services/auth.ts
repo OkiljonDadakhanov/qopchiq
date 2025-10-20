@@ -36,7 +36,7 @@ export const loginUser = async (
 
 export const verifyEmail = async (payload: { code: string }): Promise<void> => {
   try {
-    await client.post("/api/auth/verify-email", payload)
+    await client.post("api/auth/verify-email", payload)
   } catch (error) {
     handleAuthError(error)
   }
@@ -69,6 +69,14 @@ export const resetPassword = async (
   }
 }
 
+export const resendVerification = async (payload: { email: string }): Promise<void> => {
+  try {
+    await client.post("/api/auth/resend-verification", payload)
+  } catch (error) {
+    handleAuthError(error)
+  }
+}
+
 export default {
   registerUser,
   loginUser,
@@ -76,4 +84,5 @@ export default {
   logoutUser,
   forgotPassword,
   resetPassword,
+  resendVerification,
 }

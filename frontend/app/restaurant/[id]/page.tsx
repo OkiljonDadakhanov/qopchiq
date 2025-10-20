@@ -155,8 +155,8 @@ export default function RestaurantDetailPage({ params }: { params: Promise<{ id:
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="absolute bottom-0 left-0 right-0 border-t border-gray-100 bg-white p-6">
+      {/* Bottom Bar - Reserve Section */}
+      <div className="absolute bottom-20 left-0 right-0 border-t border-gray-100 bg-white p-6">
           <div className="flex items-center gap-4">
             {/* Quantity Selector */}
             <div className="flex items-center gap-3">
@@ -183,7 +183,6 @@ export default function RestaurantDetailPage({ params }: { params: Promise<{ id:
             </button>
           </div>
         </div>
-
         {/* Success Animation Modal */}
         {showAnimation && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
