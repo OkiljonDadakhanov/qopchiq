@@ -16,7 +16,7 @@ type BusinessState = {
 
 export const useBusinessStore = create<BusinessState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       business: null,
       token: null,
       isHydrated: false,
@@ -47,8 +47,12 @@ export const useBusinessStore = create<BusinessState>()(
         token: state.token 
       }),
       onRehydrateStorage: () => (state) => {
-        state?.setHydrated()
+        // Set hydrated after a small delay to ensure proper hydration
+        setTimeout(() => {
+          state?.setHydrated()
+        }, 0)
       },
+      skipHydration: false, // Ensure hydration happens
     }
   )
 )

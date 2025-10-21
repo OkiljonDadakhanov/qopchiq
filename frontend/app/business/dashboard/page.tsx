@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   Plus,
   Package,
@@ -14,22 +15,42 @@ import {
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useBusinessProfile } from "@/hooks/business-auth";
-import { useBusinessToken, useBusinessAccount } from "@/store/business-store";
+import { useBusinessToken, useBusinessAccount, useBusinessIsHydrated } from "@/store/business-store";
 
-export default function BusinessDashboardPage() {
+function BusinessDashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [isMounted, setIsMounted] = useState(false);
+  
   const { data: businessData, isLoading, error } = useBusinessProfile();
   const token = useBusinessToken();
   const businessAccount = useBusinessAccount();
+  const isHydrated = useBusinessIsHydrated();
+
+  // Handle SSR hydration
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Check authentication on mount
   useEffect(() => {
-    if (!token && !isLoading) {
+    if (isMounted && !token && !isLoading) {
       console.error("No business token found");
       // Optionally redirect to login
       // router.push("/business/login");
     }
-  }, [token, isLoading]);
+  }, [token, isLoading, isMounted]);
+
+  // Show loading during hydration
+  if (!isMounted || !isHydrated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#00B14F] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const stats = [
     { label: "Active listings", value: "12", change: "+2 this week", icon: Package },
@@ -58,6 +79,7 @@ export default function BusinessDashboardPage() {
 
   // Error state - with more detailed error handling
   if (error) {
+    console.error("Dashboard error:", error);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
@@ -66,6 +88,14 @@ export default function BusinessDashboardPage() {
             <p className="text-sm text-red-500">
               {error instanceof Error ? error.message : "An unexpected error occurred"}
             </p>
+            <div className="mt-2 text-xs text-gray-500">
+              Dashboard state: {JSON.stringify({
+                hasToken: !!token,
+                hasBusinessAccount: !!businessAccount,
+                isLoading,
+                error: error?.message
+              })}
+            </div>
           </div>
           <Link href="/business/login">
             <Button className="bg-[#00B14F] hover:bg-[#009940]">
@@ -274,3 +304,16 @@ export default function BusinessDashboardPage() {
     </div>
   );
 }
+
+// Dynamic export with SSR disabled
+export default dynamic(() => Promise.resolve(BusinessDashboardPage), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-[#00B14F] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-gray-600">Loading dashboard...</p>
+      </div>
+    </div>
+  ),
+});

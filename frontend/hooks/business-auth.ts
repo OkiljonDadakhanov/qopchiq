@@ -46,7 +46,14 @@ export const useBusinessProfile = () => {
     },
     enabled: isMounted && !!token, // Only run after mount and if token exists
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1, // Only retry once on failure
+    retry: (failureCount, error) => {
+      // Don't retry if it's an auth error
+      if (error?.message?.includes("authentication") || error?.message?.includes("token")) {
+        return false
+      }
+      return failureCount < 1 // Only retry once
+    },
     refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: false, // Don't refetch on mount if data exists
   })
 }
