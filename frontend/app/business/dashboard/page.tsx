@@ -23,9 +23,7 @@ export default function BusinessDashboardPage() {
   const token = useBusinessToken();
   const businessAccount = useBusinessAccount();
 
-  // Debug logging
-
-
+ 
   const stats = [
     { label: "Active listings", value: "12", change: "+2 this week", icon: Package },
     { label: "Orders today", value: "8", change: "+3 from yesterday", icon: ShoppingBag },
