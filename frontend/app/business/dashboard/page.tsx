@@ -16,6 +16,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useBusinessProfile } from "@/hooks/business-auth";
 import { useBusinessToken, useBusinessAccount, useBusinessIsHydrated } from "@/store/business-store";
+import ImpactExplanationModal from "@/components/business-dashboard-modal";
 
 function BusinessDashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -266,19 +267,7 @@ function BusinessDashboardPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Impact Card */}
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 sm:p-6">
-              <h3 className="font-bold text-gray-900 mb-4">Your impact</h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900">156 kg</div>
-                  <div className="text-sm text-gray-600">Food waste prevented</div>
-                </div>
-                <div>
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900">312 kg</div>
-                  <div className="text-sm text-gray-600">CO₂ emissions saved</div>
-                </div>
-              </div>
-            </div>
+            <ImpactExplanationModal />
 
             {/* Tips Card */}
             <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
