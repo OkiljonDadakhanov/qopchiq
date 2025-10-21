@@ -24,12 +24,7 @@ export default function BusinessDashboardPage() {
   const businessAccount = useBusinessAccount();
 
   // Debug logging
-  console.log('Dashboard state:', { 
-    hasToken: !!token, 
-    hasBusinessAccount: !!businessAccount,
-    isLoading,
-    error: error?.message 
-  });
+
 
   const stats = [
     { label: "Active listings", value: "12", change: "+2 this week", icon: Package },
