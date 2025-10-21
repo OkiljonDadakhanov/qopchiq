@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Plus,
@@ -23,7 +22,15 @@ export default function BusinessDashboardPage() {
   const token = useBusinessToken();
   const businessAccount = useBusinessAccount();
 
- 
+  // Check authentication on mount
+  useEffect(() => {
+    if (!token && !isLoading) {
+      console.error("No business token found");
+      // Optionally redirect to login
+      // router.push("/business/login");
+    }
+  }, [token, isLoading]);
+
   const stats = [
     { label: "Active listings", value: "12", change: "+2 this week", icon: Package },
     { label: "Orders today", value: "8", change: "+3 from yesterday", icon: ShoppingBag },
@@ -37,6 +44,7 @@ export default function BusinessDashboardPage() {
     { id: "3", customer: "Jasur M.", item: "Lunch combo", time: "1 hour ago", status: "completed" },
   ];
 
+  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -48,17 +56,49 @@ export default function BusinessDashboardPage() {
     );
   }
 
+  // Error state - with more detailed error handling
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600">Failed to load business data</p>
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-4">
+            <p className="text-red-600 font-semibold mb-2">Failed to load business data</p>
+            <p className="text-sm text-red-500">
+              {error instanceof Error ? error.message : "An unexpected error occurred"}
+            </p>
+          </div>
+          <Link href="/business/login">
+            <Button className="bg-[#00B14F] hover:bg-[#009940]">
+              Return to Login
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
 
-  const business = businessData?.business;
+  // No business data state
+  if (!businessData || !businessData.business) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-4">
+            <p className="text-yellow-800 font-semibold mb-2">No business profile found</p>
+            <p className="text-sm text-yellow-700">
+              Please complete your business registration.
+            </p>
+          </div>
+          <Link href="/business/register">
+            <Button className="bg-[#00B14F] hover:bg-[#009940]">
+              Complete Registration
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const business = businessData.business;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -67,19 +107,21 @@ export default function BusinessDashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             <div className="flex items-center gap-3">
-              {/* ✅ Bigger, responsive logo */}
               <Image
                 src="/logo.png"
                 alt="Qopchiq"
                 width={64}
                 height={64}
                 className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16"
+                priority
               />
               <div className="hidden sm:block">
-                <h1 className="font-bold text-gray-900 text-lg sm:text-xl">{business?.name || "Business"}</h1>
+                <h1 className="font-bold text-gray-900 text-lg sm:text-xl">
+                  {business.name || "Business"}
+                </h1>
                 <p className="text-xs text-gray-500">
-                  {business?.isVerified ? "Verified Business" : "Business Dashboard"}
-                  {business?.isApproved ? " • Approved" : " • Pending Approval"}
+                  {business.isVerified ? "Verified Business" : "Business Dashboard"}
+                  {business.isApproved ? " • Approved" : " • Pending Approval"}
                 </p>
               </div>
             </div>
