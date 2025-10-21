@@ -9,15 +9,21 @@ import {
   refresh,
   resendVerification,
   businessSignup,
+  businessLogin,
+  businessVerifyEmail,
+  businessResendVerification,
 } from "../controllers/auth.controller.js";
 
 const router = Router();
 
 // Auth
 router.post("/signup", signup);
-// business signup (separate endpoint expected by frontend)
-router.post("/business/signup", businessSignup);
 router.post("/login", login);
+// business auth (separate endpoints expected by frontend)
+router.post("/business/signup", businessSignup);
+router.post("/business/login", businessLogin);
+router.post("/business/verify-email", businessVerifyEmail);
+router.post("/business/resend-verification", businessResendVerification);
 router.post("/logout", logout);
 router.post("/refresh", refresh);
 

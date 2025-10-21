@@ -1,24 +1,25 @@
 import express from "express";
 import {
-	getMe,
-	updateProfile,
-	updateField,
-	updateAvatar,
-	updateLocation,
-	addDocument,
-	removeDocument,
-	deleteMe,
-	changePassword
+  getMe,
+  updateProfile,
+  updateField,
+  updateAvatar,
+  updateLocation,
+  addDocument,
+  removeDocument,
+  deleteMe,
+  changePassword,
 } from "../controllers/business.controller.js";
 import { authGuard } from "../middlewares/auth.middleware.js";
+import { businessProfileUpload } from "../middlewares/businessUpload.middleware.js";
 
 const router = express.Router();
 
 // Business profil ma'lumotlari
 router.get("/me", authGuard, getMe);
 
-// Profil yangilash
-router.patch("/me", authGuard, updateProfile);
+// Profil yangilash (fayl yuklash bilan)
+router.patch("/me", authGuard, businessProfileUpload, updateProfile);
 router.patch("/me/:key", authGuard, updateField);
 
 // Avatar yangilash (URL bilan)
@@ -38,4 +39,3 @@ router.patch("/me/password", authGuard, changePassword);
 router.delete("/me", authGuard, deleteMe);
 
 export default router;
-
