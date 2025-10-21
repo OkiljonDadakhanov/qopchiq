@@ -21,14 +21,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/signup",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "signup"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "signup"]
             },
             "body": {
               "mode": "raw",
@@ -49,14 +43,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/verify-email",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "verify-email"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "verify-email"]
             },
             "body": {
               "mode": "raw",
@@ -77,14 +65,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/resend-verification",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "resend-verification"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "resend-verification"]
             },
             "body": {
               "mode": "raw",
@@ -105,14 +87,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/login",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "login"]
             },
             "body": {
               "mode": "raw",
@@ -133,21 +109,58 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/business/signup",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "business",
-                "signup"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "signup"]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n    \"name\": \"Test Business\",\n    \"email\": \"business@example.com\",\n    \"password\": \"businesspassword123\",\n    \"phoneNumber\": \"+998901234567\",\n    \"description\": \"Business description\",\n    \"address\": \"Business address\",\n    \"businessType\": \"restaurant\"\n}"
             },
             "description": "Register a new business account. Sends verification email."
+          }
+        },
+        {
+          "name": "Business Verify Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/business/verify-email",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "verify-email"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"code\": \"123456\"\n}"
+            },
+            "description": "Verify business email with the code sent during registration"
+          }
+        },
+        {
+          "name": "Business Resend Verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/business/resend-verification",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "resend-verification"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"business@example.com\"\n}"
+            },
+            "description": "Resend verification code for business with cooldown and daily limits"
           }
         },
         {
@@ -162,15 +175,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/business/login",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "business",
-                "login"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "login"]
             },
             "body": {
               "mode": "raw",
@@ -185,14 +191,8 @@
             "method": "POST",
             "url": {
               "raw": "{{BASE_URL}}/api/auth/refresh",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "refresh"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "refresh"]
             },
             "description": "Rotate refresh token from HttpOnly cookie and return new access token"
           }
@@ -203,14 +203,8 @@
             "method": "POST",
             "url": {
               "raw": "{{BASE_URL}}/api/auth/logout",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "logout"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "logout"]
             },
             "description": "Logout the current user and clear JWT cookie"
           }
@@ -227,14 +221,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/forgot-password",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "forgot-password"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "forgot-password"]
             },
             "body": {
               "mode": "raw",
@@ -255,15 +243,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/reset-password/:token",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "reset-password",
-                ":token"
-              ],
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "reset-password", ":token"],
               "variable": [
                 {
                   "key": "token",
@@ -297,14 +278,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/users/me",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "me"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "me"]
             },
             "description": "Get current authenticated user's profile"
           }
@@ -321,14 +296,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/users/me",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "me"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "me"]
             },
             "body": {
               "mode": "formdata",
@@ -374,15 +343,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/users/me/:key",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "me",
-                ":key"
-              ],
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "me", ":key"],
               "variable": [
                 {
                   "key": "key",
@@ -410,14 +372,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/users/me",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "me"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "me"]
             },
             "description": "Delete current authenticated user's account"
           }
@@ -440,14 +396,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/upload/upload?folder=general",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "upload",
-                "upload"
-              ],
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "upload", "upload"],
               "query": [
                 {
                   "key": "folder",
@@ -481,15 +431,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/upload/file/:fileId",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "upload",
-                "file",
-                ":fileId"
-              ],
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "upload", "file", ":fileId"],
               "variable": [
                 {
                   "key": "fileId",
@@ -517,15 +460,9 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/business/me",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me"
-              ]
+              "raw": "{{BASE_URL}}/api/auth/business/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me"]
             },
             "description": "Get current business profile information"
           }
@@ -541,15 +478,9 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/business/me",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me"
-              ]
+              "raw": "{{BASE_URL}}/api/auth/business/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me"]
             },
             "body": {
               "mode": "formdata",
@@ -624,21 +555,14 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/business/me/:key",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me",
-                ":key"
-              ],
+              "raw": "{{BASE_URL}}/api/auth/business/me/:key",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me", ":key"],
               "variable": [
                 {
                   "key": "key",
                   "value": "name",
-                  "description": "name, email, phoneNumber, description, address"
+                  "description": "name, email, phoneNumber, description, address, businessType"
                 }
               ]
             },
@@ -647,6 +571,84 @@
               "raw": "{\n    \"value\": \"New value\"\n}"
             },
             "description": "Update a specific business field"
+          }
+        },
+        {
+          "name": "Update Business Avatar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/business/me/avatar",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me", "avatar"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"avatar\": {\n        \"id\": \"file-id-here\",\n        \"url\": \"https://example.com/avatar.jpg\"\n    }\n}"
+            },
+            "description": "Update business avatar using file ID and URL"
+          }
+        },
+        {
+          "name": "Update Business Location",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/business/me/location",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me", "location"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"coordinates\": [69.2401, 41.2995]\n}"
+            },
+            "description": "Update business location coordinates [longitude, latitude]"
+          }
+        },
+        {
+          "name": "Add Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/business/me/documents",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me", "documents"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fileId\": \"file-id-here\"\n}"
+            },
+            "description": "Add a document to business profile"
           }
         },
         {
@@ -660,17 +662,9 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/business/me/documents/:fileId",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me",
-                "documents",
-                ":fileId"
-              ],
+              "raw": "{{BASE_URL}}/api/auth/business/me/documents/:fileId",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me", "documents", ":fileId"],
               "variable": [
                 {
                   "key": "fileId",
@@ -696,16 +690,9 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/business/me/password",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me",
-                "password"
-              ]
+              "raw": "{{BASE_URL}}/api/auth/business/me/password",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me", "password"]
             },
             "body": {
               "mode": "raw",
@@ -725,15 +712,9 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/business/me",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me"
-              ]
+              "raw": "{{BASE_URL}}/api/auth/business/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me"]
             },
             "description": "Delete business account permanently"
           }
