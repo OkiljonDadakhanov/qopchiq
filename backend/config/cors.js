@@ -1,15 +1,14 @@
 const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(",").map(o => o.trim())
+  ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
   : [
-      "https://qopchiq.vercel.app", // Production frontend
-      "http://localhost:3000",      // Development React
-      "http://localhost:5173",      // Development Vite
-      "http://localhost:8080",      // Development Vue
+      "https://qopchiq.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "http://localhost:8080",
     ];
 
-// Trailing slash'lar bilan ham, bo'lmagan bilan ham ishlashi uchun
 const normalizeOrigin = (origin) => {
-  return origin.replace(/\/$/, ''); // Trailing slash'ni olib tashlash
+  return origin.replace(/\/$/, "");
 };
 
 export const corsOptions = {
@@ -18,27 +17,26 @@ export const corsOptions = {
     console.log(`✅ Allowed origins:`, allowedOrigins);
     console.log(`🔧 CORS_ORIGIN env:`, process.env.CORS_ORIGIN);
     console.log(`🔧 NODE_ENV:`, process.env.NODE_ENV);
-    
-    // Development yoki Postman kabi no-origin so'rovlar uchun ruxsat
+
     if (!origin) {
       console.log(`✅ Allowing request (no origin)`);
       return callback(null, true);
     }
 
-    // Development mode'da hamma origin'ga ruxsat berish
     if (process.env.NODE_ENV === "development") {
       console.log(`✅ Allowing request (development mode)`);
       return callback(null, true);
     }
 
-    // Trailing slash'ni hisobga olgan holda tekshirish
     const normalizedOrigin = normalizeOrigin(origin);
-    const isAllowed = allowedOrigins.some(allowedOrigin => 
-      normalizeOrigin(allowedOrigin) === normalizedOrigin
+    const isAllowed = allowedOrigins.some(
+      (allowedOrigin) => normalizeOrigin(allowedOrigin) === normalizedOrigin
     );
 
     if (isAllowed) {
-      console.log(`✅ Origin ${origin} is allowed (normalized: ${normalizedOrigin})`);
+      console.log(
+        `✅ Origin ${origin} is allowed (normalized: ${normalizedOrigin})`
+      );
       return callback(null, true);
     }
 
@@ -51,5 +49,4 @@ export const corsOptions = {
   allowedHeaders: ["Origin", "Content-Type", "Accept", "Authorization"],
   exposedHeaders: ["X-Total-Count", "X-Page-Count", "X-Request-ID"],
   maxAge: 86400,
-  
 };

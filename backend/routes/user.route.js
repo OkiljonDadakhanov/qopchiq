@@ -1,5 +1,11 @@
 import express from "express";
-import { getMe, updateProfile, updateField, updateAvatar, deleteMe } from "../controllers/user.controller.js";
+import {
+  getMe,
+  updateProfile,
+  updateField,
+  updateAvatar,
+  deleteMe,
+} from "../controllers/user.controller.js";
 import { authGuard } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -20,5 +26,3 @@ router.patch("/me/:key", authGuard, updateField);
 router.delete("/me", authGuard, deleteMe);
 
 export default router;
-
-
