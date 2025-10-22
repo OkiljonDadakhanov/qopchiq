@@ -101,7 +101,10 @@ class BusinessService {
     return new BusinessDto(business);
   }
 
-  async updateProfile(businessId, data) {
+  async updateProfile(businessId, data, avatarFile = null, documentFiles = []) {
+    const business = await Business.findById(businessId);
+    if (!business) throw BaseError.NotFoundError("Business not found");
+
     const allowed = [
       "name",
       "email",
@@ -111,24 +114,37 @@ class BusinessService {
       "businessType",
     ];
     const update = {};
-    for (const key of allowed)
-      if (data[key] !== undefined) update[key] = data[key];
 
-    // Handle avatar upload
-    if (data.avatar) {
-      const business = await Business.findById(businessId);
-      if (!business) throw BaseError.NotFoundError("Business not found");
-
-      // Delete old avatar if exists
-      if (business.avatarFileId) {
-        StorageService.deleteFile(business.avatarFileId).catch(() => {});
+    // Text fieldlarni yangilash
+    for (const key of allowed) {
+      if (data[key] !== undefined) {
+        update[key] = data[key];
       }
-
-      update.avatar = data.avatar.url;
-      update.avatarFileId = data.avatar.id;
     }
 
-    // Handle location update
+    // Avatar faylini yangilash (agar yuklangan bo'lsa)
+    if (avatarFile) {
+      try {
+        // Eski avatar o'chirish
+        if (business.avatarFileId) {
+          StorageService.deleteFile(business.avatarFileId).catch(() => {});
+        }
+
+        // Yangi avatar yuklash
+        const avatarData = await StorageService.uploadFile(
+          avatarFile,
+          "business-avatars"
+        );
+        update.avatar = avatarData.url;
+        update.avatarFileId = avatarData.id;
+      } catch (error) {
+        throw BaseError.BadRequestError(
+          `Avatar yuklashda xatolik: ${error.message}`
+        );
+      }
+    }
+
+    // Location yangilash
     if (data.longitude !== undefined && data.latitude !== undefined) {
       update.location = {
         type: "Point",
@@ -136,28 +152,42 @@ class BusinessService {
       };
     }
 
-    // Handle documents upload
-    if (data.documents && Array.isArray(data.documents)) {
-      const business = await Business.findById(businessId);
-      if (!business) throw BaseError.NotFoundError("Business not found");
-
-      // Add new documents
-      for (const doc of data.documents) {
-        if (doc.id && !business.documents.includes(doc.id)) {
-          business.documents.push(doc.id);
+    // Hujjat fayllarini yangilash (agar yuklangan bo'lsa)
+    if (documentFiles && documentFiles.length > 0) {
+      try {
+        const newDocumentIds = [];
+        for (const docFile of documentFiles) {
+          const docData = await StorageService.uploadFile(docFile, "documents");
+          newDocumentIds.push(docData.id);
         }
+
+        // Yangi hujjatlarni qo'shish
+        business.documents = [...business.documents, ...newDocumentIds];
+        await business.save();
+      } catch (error) {
+        throw BaseError.BadRequestError(
+          `Hujjat yuklashda xatolik: ${error.message}`
+        );
       }
-      await business.save();
     }
 
-    if (Object.keys(update).length === 0 && !data.documents)
-      throw BaseError.BadRequestError("Nothing to update");
+    // Hech narsa yangilanmasa
+    if (
+      Object.keys(update).length === 0 &&
+      (!documentFiles || documentFiles.length === 0)
+    ) {
+      throw BaseError.BadRequestError("Yangilanish uchun ma'lumot berilmagan");
+    }
 
-    const business = await Business.findByIdAndUpdate(businessId, update, {
-      new: true,
-    });
-    if (!business) throw BaseError.NotFoundError("Business not found");
-    return new BusinessDto(business);
+    // Ma'lumotlarni yangilash
+    const updatedBusiness = await Business.findByIdAndUpdate(
+      businessId,
+      update,
+      {
+        new: true,
+      }
+    );
+    return new BusinessDto(updatedBusiness);
   }
 
   async updateField(businessId, key, value) {

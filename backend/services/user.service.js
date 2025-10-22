@@ -4,63 +4,72 @@ import UserDto from "../dtos/user.dto.js";
 import StorageService from "./storage.service.js";
 
 class UserService {
-	async getMe(userId) {
-		const user = await User.findById(userId);
-		if (!user) throw BaseError.NotFoundError("User not found");
-		return new UserDto(user);
-	}
+  async getMe(userId) {
+    const user = await User.findById(userId);
+    if (!user) throw BaseError.NotFoundError("User not found");
+    return new UserDto(user);
+  }
 
-	async updateProfile(userId, data) {
-		const allowed = ["name", "email", "phone"]; // phone qo'shildi
-		const update = {};
-		for (const key of allowed) if (data[key] !== undefined) update[key] = data[key];
-		if (Object.keys(update).length === 0) throw BaseError.BadRequestError("Nothing to update");
-		const user = await User.findByIdAndUpdate(userId, update, { new: true });
-		if (!user) throw BaseError.NotFoundError("User not found");
-		return new UserDto(user);
-	}
+  async updateProfile(userId, data, avatarFile = null) {
+    const user = await User.findById(userId);
+    if (!user) throw BaseError.NotFoundError("User not found");
 
-	async updateField(userId, key, value) {
-		const allowed = new Set(["name", "email", "phone"]);
-		if (!allowed.has(key)) throw BaseError.BadRequestError("Field is not updatable");
-		const user = await User.findByIdAndUpdate(userId, { [key]: value }, { new: true });
-		if (!user) throw BaseError.NotFoundError("User not found");
-		return new UserDto(user);
-	}
+    const allowed = ["name", "email", "phone"];
+    const update = {};
 
-	async updateAvatar(userId, avatarData) {
-		if (!avatarData) throw BaseError.BadRequestError("Avatar data is required");
-		
-		const user = await User.findById(userId);
-		if (!user) throw BaseError.NotFoundError("User not found");
+    // Text fieldlarni yangilash
+    for (const key of allowed) {
+      if (data[key] !== undefined) {
+        update[key] = data[key];
+      }
+    }
 
-		// Eski avatar o'chirish (agar fileId bo'lsa)
-		if (user.avatarFileId) {
-			StorageService.deleteFile(user.avatarFileId).catch(() => {});
-		}
+    // Avatar faylini yangilash (agar yuklangan bo'lsa)
+    if (avatarFile) {
+      try {
+        // Eski avatar o'chirish
+        if (user.avatarFileId) {
+          StorageService.deleteFile(user.avatarFileId).catch(() => {});
+        }
 
-		user.avatar = avatarData.url;
-		user.avatarFileId = avatarData.id || null;
-		await user.save();
+        // Yangi avatar yuklash
+        const avatarData = await StorageService.uploadFile(
+          avatarFile,
+          "avatars"
+        );
+        update.avatar = avatarData.url;
+        update.avatarFileId = avatarData.id;
+      } catch (error) {
+        throw BaseError.BadRequestError(
+          `Avatar yuklashda xatolik: ${error.message}`
+        );
+      }
+    }
 
-		return new UserDto(user);
-	}
+    // Hech narsa yangilanmasa
+    if (Object.keys(update).length === 0) {
+      throw BaseError.BadRequestError("Yangilanish uchun ma'lumot berilmagan");
+    }
 
-	async deleteMe(userId) {
-		const user = await User.findById(userId);
-		if (!user) throw BaseError.NotFoundError("User not found");
+    // Ma'lumotlarni yangilash
+    const updatedUser = await User.findByIdAndUpdate(userId, update, {
+      new: true,
+    });
+    return new UserDto(updatedUser);
+  }
 
-		// Avatar o'chirish
-		if (user.avatarFileId) {
-			StorageService.deleteFile(user.avatarFileId).catch(() => {});
-		}
+  async deleteMe(userId) {
+    const user = await User.findById(userId);
+    if (!user) throw BaseError.NotFoundError("User not found");
 
-		await User.findByIdAndDelete(userId);
-		return { success: true };
-	}
+    // Avatar o'chirish
+    if (user.avatarFileId) {
+      StorageService.deleteFile(user.avatarFileId).catch(() => {});
+    }
 
+    await User.findByIdAndDelete(userId);
+    return { success: true };
+  }
 }
 
 export default new UserService();
-
-

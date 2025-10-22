@@ -13,44 +13,30 @@ export const getMe = async (req, res, next) => {
 
 export const updateProfile = async (req, res, next) => {
   try {
-    const data = { ...req.body };
+    // Form data dan text fieldlarni olish
+    const data = {};
+    if (req.body.name) data.name = req.body.name;
+    if (req.body.email) data.email = req.body.email;
+    if (req.body.phoneNumber) data.phoneNumber = req.body.phoneNumber;
+    if (req.body.businessName) data.businessName = req.body.businessName;
+    if (req.body.description) data.description = req.body.description;
+    if (req.body.address) data.address = req.body.address;
+    if (req.body.businessType) data.businessType = req.body.businessType;
+    if (req.body.longitude) data.longitude = parseFloat(req.body.longitude);
+    if (req.body.latitude) data.latitude = parseFloat(req.body.latitude);
 
-    // Handle file uploads
-    if (req.files) {
-      // Handle avatar upload
-      if (req.files.avatar) {
-        const avatarFile = req.files.avatar[0];
-        const uploadResult = await StorageService.uploadFile(
-          avatarFile,
-          "business-avatars"
-        );
-        data.avatar = {
-          id: uploadResult.id,
-          url: uploadResult.url,
-        };
-      }
+    // Avatar faylini olish (agar yuklangan bo'lsa)
+    const avatarFile = req.file || null;
 
-      // Handle documents upload
-      if (req.files.documents) {
-        const documentFiles = Array.isArray(req.files.documents)
-          ? req.files.documents
-          : [req.files.documents];
-        data.documents = [];
+    // Hujjat fayllarini olish (agar yuklangan bo'lsa)
+    const documentFiles = req.files ? req.files : [];
 
-        for (const docFile of documentFiles) {
-          const uploadResult = await StorageService.uploadFile(
-            docFile,
-            "documents"
-          );
-          data.documents.push({
-            id: uploadResult.id,
-            url: uploadResult.url,
-          });
-        }
-      }
-    }
-
-    const business = await BusinessService.updateProfile(req.userId, data);
+    const business = await BusinessService.updateProfile(
+      req.userId,
+      data,
+      avatarFile,
+      documentFiles
+    );
     return res.json({ success: true, business });
   } catch (error) {
     return next(error);

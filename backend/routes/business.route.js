@@ -2,11 +2,6 @@ import express from "express";
 import {
   getMe,
   updateProfile,
-  updateField,
-  updateAvatar,
-  updateLocation,
-  addDocument,
-  removeDocument,
   deleteMe,
   changePassword,
 } from "../controllers/business.controller.js";
@@ -18,19 +13,8 @@ const router = express.Router();
 // Business profil ma'lumotlari
 router.get("/me", authGuard, getMe);
 
-// Profil yangilash (fayl yuklash bilan)
+// Universal profil yangilash (text fieldlar + avatar + hujjatlar + location)
 router.patch("/me", authGuard, businessProfileUpload, updateProfile);
-router.patch("/me/:key", authGuard, updateField);
-
-// Avatar yangilash (URL bilan)
-router.patch("/me/avatar", authGuard, updateAvatar);
-
-// Location yangilash
-router.patch("/me/location", authGuard, updateLocation);
-
-// Hujjatlar boshqaruvi
-router.post("/me/documents", authGuard, addDocument);
-router.delete("/me/documents/:fileId", authGuard, removeDocument);
 
 // Parol o'zgartirish
 router.patch("/me/password", authGuard, changePassword);
