@@ -7,8 +7,36 @@ import crypto from "crypto";
 
 import MailService from "./mail.service.js";
 import TokenService from "./token.service.js";
+import FileService from "./file.service.js";
 
 class BusinessService {
+  async getDocumentInfo(docId) {
+    if (!docId) return null;
+    const fileInfo = await FileService.getFileInfo(docId);
+    if (!fileInfo.success) return null;
+    return {
+      id: fileInfo.file.id,
+      url: fileInfo.file.url,
+      name: fileInfo.file.originalName,
+      mimeType: fileInfo.file.mimeType,
+      size: fileInfo.file.size,
+    };
+  }
+
+  async getBusinessDocuments(business) {
+    if (!business.documents || !Array.isArray(business.documents)) {
+      return [];
+    }
+
+    const documents = [];
+    for (const docId of business.documents) {
+      const docInfo = await this.getDocumentInfo(docId);
+      if (docInfo) {
+        documents.push(docInfo);
+      }
+    }
+    return documents;
+  }
   async login(email, password) {
     if (!email || !password)
       throw BaseError.BadRequestError("Email and password are required");

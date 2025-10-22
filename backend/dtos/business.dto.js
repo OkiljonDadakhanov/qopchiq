@@ -14,12 +14,7 @@ export default class BusinessDto {
     this.address = business.address;
     this.businessType = business.businessType;
     this.location = business.location;
-    this.documents = business.documents
-      ? business.documents.map((docId) => ({
-          id: docId,
-          url: `${process.env.APPWRITE_ENDPOINT}/storage/buckets/${process.env.APPWRITE_BUCKET_ID}/files/${docId}/view?project=${process.env.APPWRITE_PROJECT_ID}`,
-        }))
-      : [];
+    this.documents = business.documents || [];
     this.lastLogin = business.lastLogin;
     this.isVerified = business.isVerified;
     this.isApproved = business.isApproved;
