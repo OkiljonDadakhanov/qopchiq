@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Qopchiq API V0.0.5",
-    "description": "Complete API endpoints for Qopchiq application with authentication, user management, business management, and file upload",
+    "name": "Qopchiq API V0.0.6 - Optimized",
+    "description": "Complete API endpoints for Qopchiq application with optimized user profile management. Universal updateProfile API allows updating any combination of fields (name, email, phone, avatar) in a single request.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -21,14 +21,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/signup",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "signup"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "signup"]
             },
             "body": {
               "mode": "raw",
@@ -49,14 +43,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/verify-email",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "verify-email"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "verify-email"]
             },
             "body": {
               "mode": "raw",
@@ -77,14 +65,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/resend-verification",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "resend-verification"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "resend-verification"]
             },
             "body": {
               "mode": "raw",
@@ -105,14 +87,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/login",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "login"]
             },
             "body": {
               "mode": "raw",
@@ -133,21 +109,58 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/business/signup",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "business",
-                "signup"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "signup"]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n    \"name\": \"Test Business\",\n    \"email\": \"business@example.com\",\n    \"password\": \"businesspassword123\",\n    \"phoneNumber\": \"+998901234567\",\n    \"description\": \"Business description\",\n    \"address\": \"Business address\",\n    \"businessType\": \"restaurant\"\n}"
             },
             "description": "Register a new business account. Sends verification email."
+          }
+        },
+        {
+          "name": "Business Verify Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/business/verify-email",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "verify-email"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"code\": \"123456\"\n}"
+            },
+            "description": "Verify business email with the code sent during registration"
+          }
+        },
+        {
+          "name": "Business Resend Verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/business/resend-verification",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "resend-verification"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"business@example.com\"\n}"
+            },
+            "description": "Resend verification code for business with cooldown and daily limits"
           }
         },
         {
@@ -162,15 +175,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/business/login",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "business",
-                "login"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "login"]
             },
             "body": {
               "mode": "raw",
@@ -185,14 +191,8 @@
             "method": "POST",
             "url": {
               "raw": "{{BASE_URL}}/api/auth/refresh",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "refresh"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "refresh"]
             },
             "description": "Rotate refresh token from HttpOnly cookie and return new access token"
           }
@@ -203,14 +203,8 @@
             "method": "POST",
             "url": {
               "raw": "{{BASE_URL}}/api/auth/logout",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "logout"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "logout"]
             },
             "description": "Logout the current user and clear JWT cookie"
           }
@@ -227,14 +221,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/forgot-password",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "forgot-password"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "forgot-password"]
             },
             "body": {
               "mode": "raw",
@@ -255,15 +243,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/auth/reset-password/:token",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "reset-password",
-                ":token"
-              ],
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "reset-password", ":token"],
               "variable": [
                 {
                   "key": "token",
@@ -283,7 +264,7 @@
     },
     {
       "name": "Users",
-      "description": "User profile management endpoints",
+      "description": "Optimized user profile management with universal update API. Single endpoint for updating any combination of profile fields.",
       "item": [
         {
           "name": "Get Me",
@@ -297,20 +278,14 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/users/me",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "me"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "me"]
             },
             "description": "Get current authenticated user's profile"
           }
         },
         {
-          "name": "Update Profile",
+          "name": "Update Profile (Universal)",
           "request": {
             "method": "PATCH",
             "header": [
@@ -321,14 +296,8 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/users/me",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "me"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "me"]
             },
             "body": {
               "mode": "formdata",
@@ -336,66 +305,30 @@
                 {
                   "key": "name",
                   "value": "Updated Name",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Optional: Update user name"
                 },
                 {
                   "key": "email",
                   "value": "updated@example.com",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Optional: Update user email"
                 },
                 {
                   "key": "phone",
                   "value": "+998901234567",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Optional: Update user phone"
                 },
                 {
                   "key": "avatar",
                   "type": "file",
-                  "src": []
+                  "src": [],
+                  "description": "Optional: Upload new avatar image. Automatically uploads to Appwrite and sets avatar URL. Old avatar is automatically deleted."
                 }
               ]
             },
-            "description": "Update profile fields including avatar file. Avatar file is optional. If provided, automatically uploads to Appwrite and sets avatar URL."
-          }
-        },
-        {
-          "name": "Update Single Field",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ACCESS_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/users/me/:key",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "me",
-                ":key"
-              ],
-              "variable": [
-                {
-                  "key": "key",
-                  "value": "name",
-                  "description": "Field to update (name, email, phone)"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"value\": \"Only Name Updated\"\n}"
-            },
-            "description": "Update a single field by key (name, email, phone)"
+            "description": "Universal profile update API. Update any combination of fields (name, email, phone, avatar) in a single request. All fields are optional. Avatar file is automatically uploaded to Appwrite and old avatar is deleted."
           }
         },
         {
@@ -410,94 +343,10 @@
             ],
             "url": {
               "raw": "{{BASE_URL}}/api/users/me",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "me"
-              ]
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "me"]
             },
             "description": "Delete current authenticated user's account"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Upload",
-      "description": "File upload endpoints",
-      "item": [
-        {
-          "name": "Upload File",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ACCESS_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/upload/upload?folder=general",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "upload",
-                "upload"
-              ],
-              "query": [
-                {
-                  "key": "folder",
-                  "value": "general",
-                  "description": "avatars, business-avatars, documents, posts"
-                }
-              ]
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "file",
-                  "type": "file",
-                  "src": []
-                }
-              ]
-            },
-            "description": "Upload a file and get {id, url, name, size, mimeType}"
-          }
-        },
-        {
-          "name": "Delete File",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ACCESS_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/upload/file/:fileId",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "upload",
-                "file",
-                ":fileId"
-              ],
-              "variable": [
-                {
-                  "key": "fileId",
-                  "value": "file-id-here"
-                }
-              ]
-            },
-            "description": "Delete a file by ID"
           }
         }
       ]
@@ -517,21 +366,15 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/business/me",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me"
-              ]
+              "raw": "{{BASE_URL}}/api/auth/business/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me"]
             },
             "description": "Get current business profile information"
           }
         },
         {
-          "name": "Update Business Profile",
+          "name": "Update Business Profile (Universal)",
           "request": {
             "method": "PATCH",
             "header": [
@@ -541,15 +384,9 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/business/me",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me"
-              ]
+              "raw": "{{BASE_URL}}/api/auth/business/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me"]
             },
             "body": {
               "mode": "formdata",
@@ -557,128 +394,66 @@
                 {
                   "key": "name",
                   "value": "Updated Business Name",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Optional: Update business name"
                 },
                 {
                   "key": "email",
                   "value": "business@example.com",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Optional: Update business email"
                 },
                 {
                   "key": "phoneNumber",
                   "value": "+998901234567",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Optional: Update business phone"
                 },
                 {
                   "key": "description",
                   "value": "Business description",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Optional: Update business description"
                 },
                 {
                   "key": "address",
                   "value": "Business address",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Optional: Update business address"
                 },
                 {
                   "key": "businessType",
                   "value": "restaurant",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Optional: Update business type"
                 },
                 {
                   "key": "longitude",
                   "value": "69.2401",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Optional: Update longitude coordinate"
                 },
                 {
                   "key": "latitude",
                   "value": "41.2995",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Optional: Update latitude coordinate"
                 },
                 {
                   "key": "avatar",
                   "type": "file",
-                  "src": []
+                  "src": [],
+                  "description": "Optional: Upload new business avatar. Automatically uploads to Appwrite and sets avatar URL. Old avatar is automatically deleted."
                 },
                 {
                   "key": "documents",
                   "type": "file",
-                  "src": []
+                  "src": [],
+                  "description": "Optional: Upload new business documents. Automatically uploads to Appwrite and adds to documents list."
                 }
               ]
             },
-            "description": "Update business profile fields including avatar, location coordinates, and documents. All files are optional. If provided, automatically uploads to Appwrite and sets URLs."
-          }
-        },
-        {
-          "name": "Update Business Field",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ACCESS_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/business/me/:key",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me",
-                ":key"
-              ],
-              "variable": [
-                {
-                  "key": "key",
-                  "value": "name",
-                  "description": "name, email, phoneNumber, description, address"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"value\": \"New value\"\n}"
-            },
-            "description": "Update a specific business field"
-          }
-        },
-        {
-          "name": "Remove Document",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ACCESS_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/business/me/documents/:fileId",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me",
-                "documents",
-                ":fileId"
-              ],
-              "variable": [
-                {
-                  "key": "fileId",
-                  "value": "file-id-to-remove"
-                }
-              ]
-            },
-            "description": "Remove a document by file ID"
+            "description": "Universal business profile update API. Update any combination of fields (name, email, phone, description, address, businessType, location, avatar, documents) in a single request. All fields are optional. Files are automatically uploaded to Appwrite."
           }
         },
         {
@@ -696,16 +471,9 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/business/me/password",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me",
-                "password"
-              ]
+              "raw": "{{BASE_URL}}/api/auth/business/me/password",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me", "password"]
             },
             "body": {
               "mode": "raw",
@@ -725,15 +493,9 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/business/me",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "business",
-                "me"
-              ]
+              "raw": "{{BASE_URL}}/api/auth/business/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "business", "me"]
             },
             "description": "Delete business account permanently"
           }

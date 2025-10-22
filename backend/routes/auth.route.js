@@ -10,6 +10,8 @@ import {
   resendVerification,
   businessSignup,
   businessLogin,
+  businessVerifyEmail,
+  businessResendVerification,
 } from "../controllers/auth.controller.js";
 
 const router = Router();
@@ -17,12 +19,11 @@ const router = Router();
 // User Auth
 router.post("/signup", signup);
 router.post("/login", login);
-
-// Business Auth
+// business auth (separate endpoints expected by frontend)
 router.post("/business/signup", businessSignup);
 router.post("/business/login", businessLogin);
-
-// Common Auth
+router.post("/business/verify-email", businessVerifyEmail);
+router.post("/business/resend-verification", businessResendVerification);
 router.post("/logout", logout);
 router.post("/refresh", refresh);
 router.post("/verify-email", verifyEmail);

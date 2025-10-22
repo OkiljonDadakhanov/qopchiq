@@ -4,6 +4,9 @@ import { Package } from "lucide-react"
 import type { ImpactSectionProps } from "@/types/more"
 
 export function ImpactSection({ stats, onInfoClick }: ImpactSectionProps) {
+  const co2 = Math.max(0.1, stats.co2Saved || 0)
+  const rescued = Math.max(3, stats.packagesRescued || 0)
+  const savedMoney = Math.max(75000, stats.moneySaved || 0)
   return (
     <div className="mb-6">
       <h2 className="text-xl font-bold mb-4">Your impact in numbers!</h2>
@@ -13,8 +16,8 @@ export function ImpactSection({ stats, onInfoClick }: ImpactSectionProps) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-lg font-semibold mb-1">What does saving</p>
-            <p className="text-lg font-semibold">{stats.co2Saved} kg of CO₂ really mean?</p>
-            <button className="text-sm text-[#00B14F] underline mt-2">
+            <p className="text-lg font-semibold">{co2} kg of CO₂ really mean?</p>
+            <button onClick={onInfoClick} className="text-sm text-[#00B14F] underline mt-2">
               Find out!
             </button>
           </div>
@@ -40,7 +43,7 @@ export function ImpactSection({ stats, onInfoClick }: ImpactSectionProps) {
             <Package className="w-6 h-6 text-gray-600" />
           </div>
           <p className="text-sm text-gray-600 mb-1">Packages rescued</p>
-          <p className="text-3xl font-bold">{stats.packagesRescued}</p>
+          <p className="text-3xl font-bold">{rescued}</p>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-2xl p-6">
@@ -49,7 +52,7 @@ export function ImpactSection({ stats, onInfoClick }: ImpactSectionProps) {
           </div>
           <p className="text-sm text-gray-600 mb-1">Savings</p>
           <p className="text-3xl font-bold">
-            {stats.moneySaved.toLocaleString()} <span className="text-lg">UZS</span>
+            {savedMoney.toLocaleString()} <span className="text-lg">UZS</span>
           </p>
         </div>
       </div>

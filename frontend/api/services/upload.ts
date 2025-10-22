@@ -4,6 +4,8 @@ import authClient from "../authClient";
 // Upload Response Types
 // ===============================
 export interface UploadResponse {
+  id: string;
+  url: string;
   success: boolean
   file: {
     id: string
@@ -20,13 +22,18 @@ const handleUploadError = (error: any) => {
 };
 
 // ✅ Upload file to general folder
-export const uploadFile = async (formData: FormData): Promise<UploadResponse> => {
+export const uploadFile = async (formData: FormData, folder = "general"): Promise<UploadResponse> => {
   try {
-    const { data } = await authClient.post('/api/upload/upload?folder=general', formData, {
+    formData.append("folder", folder)
+
+    const { data } = await authClient.post(`/api/upload/upload?folder=${encodeURIComponent(folder)}`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        // Allow browser to attach the correct boundary, only hint the type
+        "Accept": "application/json",
+        "Content-Type": "multipart/form-data",
       },
     });
+    
     
     if (!data.success || !data.file) {
       throw new Error('Invalid upload response');
@@ -39,12 +46,10 @@ export const uploadFile = async (formData: FormData): Promise<UploadResponse> =>
   }
 };
 
-console.log('uploaded file ', uploadFile)
-
 // ✅ Upload avatar specifically
 export const uploadAvatar = async (file: File): Promise<UploadResponse> => {
   const formData = new FormData();
   formData.append('file', file);
-  
-  return uploadFile(formData);
+
+  return uploadFile(formData, "avatars");
 };

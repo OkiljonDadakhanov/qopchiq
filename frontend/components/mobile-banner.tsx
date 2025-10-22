@@ -8,7 +8,7 @@ export default function MobileOnlyNotice() {
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState<boolean | null>(null); // null = unknown during SSR
 
-  const mobileOnlyRoutes = [
+  const mobileOnlyRoutes: any[] = [
     // "/feed",
     // "/profile",
     // "/restaurant",
@@ -24,7 +24,7 @@ export default function MobileOnlyNotice() {
     // "/filter",
     // "/forgot-password",
     // "/orders",
-    "/favourites",
+    // "/favourites",
     // "/more",
   ];
 

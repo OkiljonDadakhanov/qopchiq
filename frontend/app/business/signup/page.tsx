@@ -1,29 +1,75 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import Image from "next/image"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useCustomToast } from "@/components/custom-toast"
+import { useBusinessSignup } from "@/hooks/business-auth"
+
+const signupSchema = z.object({
+  businessName: z.string().min(2, "Business name is required"),
+  email: z.string().email("Enter a valid email address"),
+  phone: z.string().min(7, "Enter a valid phone number"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  description: z.string().optional(),
+  address: z.string().optional(),
+  businessType: z.string().optional(),
+})
+
+type SignupValues = z.infer<typeof signupSchema>
 
 export default function BusinessSignupPage() {
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    businessName: "",
-    email: "",
-    phone: "",
-    password: "",
+  const toast = useCustomToast()
+  const signupMutation = useBusinessSignup()
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignupValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      businessName: "",
+      email: "",
+      phone: "",
+      password: "",
+      description: "",
+      address: "",
+      businessType: "restaurant",
+    },
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    router.push("/business/onboarding")
+  const onSubmit = async (values: SignupValues) => {
+    try {
+      const result = await signupMutation.mutateAsync({
+        name: values.businessName.trim(),
+        email: values.email.trim(),
+        password: values.password,
+        phoneNumber: values.phone.replace(/\s+/g, ""),
+        description: values.description?.trim(),
+        address: values.address?.trim(),
+        businessType: values.businessType,
+      })
+
+      console.log('Signup result:', result);
+      toast.success("Account created", "Business account created successfully!")
+      router.push("/business/dashboard")
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      toast.error("Sign up failed", error?.message ?? "Unable to create account. Please try again.")
+    }
   }
+
+  const isLoading = signupMutation.isPending || isSubmitting
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -41,29 +87,25 @@ export default function BusinessSignupPage() {
               <p className="text-sm text-gray-600 text-center mt-2">Start reducing waste and earning revenue today</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <Label htmlFor="businessName">Business name</Label>
                 <Input
                   id="businessName"
                   type="text"
                   placeholder="Your restaurant or store name"
-                  value={formData.businessName}
-                  onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                  required
+                  autoComplete="organization"
+                  {...register("businessName")}
                 />
+                {errors.businessName?.message ? (
+                  <p className="text-xs text-red-500 mt-1">{errors.businessName.message}</p>
+                ) : null}
               </div>
 
               <div>
                 <Label htmlFor="email">Email address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="business@example.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
+                <Input id="email" type="email" placeholder="business@example.com" autoComplete="email" {...register("email")} />
+                {errors.email?.message ? <p className="text-xs text-red-500 mt-1">{errors.email.message}</p> : null}
               </div>
 
               <div>
@@ -72,10 +114,10 @@ export default function BusinessSignupPage() {
                   id="phone"
                   type="tel"
                   placeholder="+998 90 123 45 67"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  required
+                  autoComplete="tel"
+                  {...register("phone")}
                 />
+                {errors.phone?.message ? <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p> : null}
               </div>
 
               <div>
@@ -84,14 +126,36 @@ export default function BusinessSignupPage() {
                   id="password"
                   type="password"
                   placeholder="Create a secure password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
+                  autoComplete="new-password"
+                  {...register("password")}
                 />
+                {errors.password?.message ? <p className="text-xs text-red-500 mt-1">{errors.password.message}</p> : null}
               </div>
 
-              <Button type="submit" className="w-full bg-[#00B14F] hover:bg-[#009940]">
-                Create business account
+              <div>
+                <Label htmlFor="description">Business description (optional)</Label>
+                <Input
+                  id="description"
+                  type="text"
+                  placeholder="Brief description of your business"
+                  {...register("description")}
+                />
+                {errors.description?.message ? <p className="text-xs text-red-500 mt-1">{errors.description.message}</p> : null}
+              </div>
+
+              <div>
+                <Label htmlFor="address">Business address (optional)</Label>
+                <Input
+                  id="address"
+                  type="text"
+                  placeholder="Your business address"
+                  {...register("address")}
+                />
+                {errors.address?.message ? <p className="text-xs text-red-500 mt-1">{errors.address.message}</p> : null}
+              </div>
+
+              <Button type="submit" className="w-full bg-[#00B14F] hover:bg-[#009940]" disabled={isLoading}>
+                {isLoading ? "Creating account..." : "Create business account"}
               </Button>
             </form>
 

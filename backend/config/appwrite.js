@@ -9,4 +9,4 @@ client
 
 const storage = new Storage(client)
 
-export { client, storage }
+export { client, storage }    

@@ -39,6 +39,21 @@ export const CO2_INFO = {
 } as const
 
 // ===========================
+// Learn/Know More Content
+// ===========================
+
+export const KNOW_QOPCHIQ = {
+  title: "Get to know Qopchiq better",
+  description:
+    "Qopchiq — ortiqcha oziq-ovqatni isrof qilmasdan, arzon narxda qutqarish uchun platforma. Siz yaqin atrofdagi restoran va do‘konlardan chegirmali paketlarni topasiz, ular odatda kun oxirida yoki muddatga yaqin qolgan mahsulotlardan tuziladi.",
+  bullets: [
+    "Restoranlar va do‘konlar ortiqchani yo‘q qilmasdan sotsa — tabiatga foyda",
+    "Siz 30-70% gacha tejalgan narxda mazali ovqat olasiz",
+    "Har bir qutqarilgan paket CO₂ chiqindilarini kamaytirishga hissa qo‘shadi",
+  ],
+} as const
+
+// ===========================
 // Toast Messages
 // ===========================
 

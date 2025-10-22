@@ -29,6 +29,10 @@ export interface UpdateProfileData {
   phone?: string
 }
 
+export interface CreatedAt {
+  createdAt?: Date
+}
+
 export interface UpdateAvatar {
   avatar: AvatarData
 }

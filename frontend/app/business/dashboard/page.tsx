@@ -1,7 +1,7 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   Plus,
   Package,
@@ -14,9 +14,44 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useBusinessProfile } from "@/hooks/business-auth";
+import { useBusinessToken, useBusinessAccount, useBusinessIsHydrated } from "@/store/business-store";
+import ImpactExplanationModal from "@/components/business-dashboard-modal";
 
-export default function BusinessDashboardPage() {
+function BusinessDashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [isMounted, setIsMounted] = useState(false);
+  
+  const { data: businessData, isLoading, error } = useBusinessProfile();
+  const token = useBusinessToken();
+  const businessAccount = useBusinessAccount();
+  const isHydrated = useBusinessIsHydrated();
+
+  // Handle SSR hydration
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Check authentication on mount
+  useEffect(() => {
+    if (isMounted && !token && !isLoading) {
+      console.error("No business token found");
+      // Optionally redirect to login
+      // router.push("/business/login");
+    }
+  }, [token, isLoading, isMounted]);
+
+  // Show loading during hydration
+  if (!isMounted || !isHydrated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#00B14F] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const stats = [
     { label: "Active listings", value: "12", change: "+2 this week", icon: Package },
@@ -31,6 +66,71 @@ export default function BusinessDashboardPage() {
     { id: "3", customer: "Jasur M.", item: "Lunch combo", time: "1 hour ago", status: "completed" },
   ];
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#00B14F] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state - with more detailed error handling
+  if (error) {
+    console.error("Dashboard error:", error);
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-4">
+            <p className="text-red-600 font-semibold mb-2">Failed to load business data</p>
+            <p className="text-sm text-red-500">
+              {error instanceof Error ? error.message : "An unexpected error occurred"}
+            </p>
+            <div className="mt-2 text-xs text-gray-500">
+              Dashboard state: {JSON.stringify({
+                hasToken: !!token,
+                hasBusinessAccount: !!businessAccount,
+                isLoading,
+                error: error?.message
+              })}
+            </div>
+          </div>
+          <Link href="/business/login">
+            <Button className="bg-[#00B14F] hover:bg-[#009940]">
+              Return to Login
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // No business data state
+  if (!businessData || !businessData.business) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-4">
+            <p className="text-yellow-800 font-semibold mb-2">No business profile found</p>
+            <p className="text-sm text-yellow-700">
+              Please complete your business registration.
+            </p>
+          </div>
+          <Link href="/business/register">
+            <Button className="bg-[#00B14F] hover:bg-[#009940]">
+              Complete Registration
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const business = businessData.business;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -38,17 +138,22 @@ export default function BusinessDashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             <div className="flex items-center gap-3">
-              {/* ✅ Bigger, responsive logo */}
               <Image
                 src="/logo.png"
                 alt="Qopchiq"
                 width={64}
                 height={64}
                 className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16"
+                priority
               />
               <div className="hidden sm:block">
-                <h1 className="font-bold text-gray-900 text-lg sm:text-xl">Green Cafe</h1>
-                <p className="text-xs text-gray-500">Business Dashboard</p>
+                <h1 className="font-bold text-gray-900 text-lg sm:text-xl">
+                  {business.name || "Business"}
+                </h1>
+                <p className="text-xs text-gray-500">
+                  {business.isVerified ? "Verified Business" : "Business Dashboard"}
+                  {business.isApproved ? " • Approved" : " • Pending Approval"}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
@@ -162,19 +267,7 @@ export default function BusinessDashboardPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Impact Card */}
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 sm:p-6">
-              <h3 className="font-bold text-gray-900 mb-4">Your impact</h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900">156 kg</div>
-                  <div className="text-sm text-gray-600">Food waste prevented</div>
-                </div>
-                <div>
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900">312 kg</div>
-                  <div className="text-sm text-gray-600">CO₂ emissions saved</div>
-                </div>
-              </div>
-            </div>
+            <ImpactExplanationModal />
 
             {/* Tips Card */}
             <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
@@ -200,3 +293,16 @@ export default function BusinessDashboardPage() {
     </div>
   );
 }
+
+// Dynamic export with SSR disabled
+export default dynamic(() => Promise.resolve(BusinessDashboardPage), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-[#00B14F] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-gray-600">Loading dashboard...</p>
+      </div>
+    </div>
+  ),
+});

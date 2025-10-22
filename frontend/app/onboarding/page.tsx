@@ -15,12 +15,14 @@ const onboardingSteps = [
   {
     icon: DollarSign,
     title: "Save Money",
-    description: "Get quality food at up to 70% off. Find nearby offers and buy delicious meals at amazing prices.",
+    description:
+      "Get quality food at up to 70% off. Find nearby offers and buy delicious meals at amazing prices.",
   },
   {
     icon: Leaf,
     title: "Help the Planet",
-    description: "Every purchase helps reduce waste, supports local businesses, and protects our environment.",
+    description:
+      "Every purchase helps reduce waste, supports local businesses, and protects our environment.",
   },
 ]
 
@@ -33,74 +35,77 @@ export default function OnboardingPage() {
     }
   }
 
-  const handleSkip = () => {
-    setCurrentStep(onboardingSteps.length - 1)
-  }
+  const handleSkip = () => setCurrentStep(onboardingSteps.length - 1)
 
   const step = onboardingSteps[currentStep]
   const Icon = step.icon
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      {/* Status Bar */}
-      
-      {/* Skip Button */}
+    <div className="flex min-h-screen flex-col items-center justify-between bg-white px-6 py-10">
+      {/* Skip button */}
       {currentStep < onboardingSteps.length - 1 && (
-        <div className="px-6 py-4 text-right">
-          <button onClick={handleSkip} className="text-sm font-semibold text-gray-500 hover:text-gray-700">
-            Skip
-          </button>
-        </div>
+        <button
+          onClick={handleSkip}
+          className="absolute right-6 top-6 text-sm font-semibold text-gray-500 hover:text-gray-700"
+        >
+          Skip
+        </button>
       )}
 
-      {/* Content */}
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-8">
-        <div className="mb-8 flex h-32 w-32 items-center justify-center rounded-full bg-[#00B14F]/10">
-          <Icon className="h-16 w-16 text-[#00B14F]" />
+      {/* Icon and text */}
+      <div className="flex flex-1 flex-col items-center justify-center text-center">
+        <div className="mb-8 flex h-36 w-36 items-center justify-center rounded-full bg-[#00B14F]/10 shadow-sm">
+          <Icon className="h-20 w-20 text-[#00B14F]" />
         </div>
 
-        <h2 className="mb-4 text-center text-3xl font-bold text-gray-900">{step.title}</h2>
-        <p className="mb-8 text-center text-base leading-relaxed text-gray-600">{step.description}</p>
+        <h2 className="mb-4 text-2xl font-bold text-gray-900 sm:text-3xl">
+          {step.title}
+        </h2>
+        <p className="max-w-xs text-base leading-relaxed text-gray-600 sm:max-w-sm">
+          {step.description}
+        </p>
 
-        {/* Progress Dots */}
-        <div className="mb-8 flex gap-2">
+        {/* Progress dots */}
+        <div className="mt-8 flex items-center justify-center gap-2">
           {onboardingSteps.map((_, index) => (
             <div
               key={index}
-              className={`h-2 w-2 rounded-full transition-all ${
-                index === currentStep ? "w-8 bg-[#00B14F]" : "bg-gray-300"
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === currentStep
+                  ? "w-8 bg-[#00B14F]"
+                  : "w-2 bg-gray-300"
               }`}
             />
           ))}
         </div>
       </div>
 
-      {/* Bottom Actions */}
-      <div className="px-6 pb-8">
+      {/* Bottom actions */}
+      <div className="w-full max-w-sm space-y-3">
         {currentStep < onboardingSteps.length - 1 ? (
           <Button
             onClick={handleNext}
-            className="cursor-pointer h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943]"
+            className="h-12 w-full rounded-lg bg-[#00B14F] text-base font-semibold text-white hover:bg-[#009943]"
           >
             Next
             <ChevronRight className="ml-2 h-5 w-5" />
           </Button>
         ) : (
-          <div className="space-y-3">
+          <>
             <Link href="/signup" className="block">
-              <Button className="cursor-pointer h-12 w-full rounded-lg bg-[#00B14F] font-semibold text-white hover:bg-[#009943]">
+              <Button className="h-12 w-full rounded-lg bg-[#00B14F] text-base font-semibold text-white hover:bg-[#009943]">
                 Create Account
               </Button>
             </Link>
             <Link href="/signin" className="block">
               <Button
                 variant="outline"
-                className="cursor-pointer h-12 w-full rounded-lg border-2 border-[#00B14F] font-semibold text-[#00B14F] hover:bg-[#00B14F]/5 bg-transparent"
+                className="h-12 w-full rounded-lg border-2 border-[#00B14F] text-base font-semibold text-[#00B14F] hover:bg-[#00B14F]/5"
               >
                 Sign In
               </Button>
             </Link>
-          </div>
+          </>
         )}
       </div>
     </div>
