@@ -16,7 +16,7 @@ import {
 
 const router = Router();
 
-// Auth
+// User Auth
 router.post("/signup", signup);
 router.post("/login", login);
 // business auth (separate endpoints expected by frontend)
@@ -26,7 +26,6 @@ router.post("/business/verify-email", businessVerifyEmail);
 router.post("/business/resend-verification", businessResendVerification);
 router.post("/logout", logout);
 router.post("/refresh", refresh);
-
 router.post("/verify-email", verifyEmail);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);

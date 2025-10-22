@@ -1,4 +1,5 @@
 import UserService from "../services/user.service.js";
+import upload from "../middlewares/upload.middleware.js";
 
 export const getMe = async (req, res, next) => {
   try {

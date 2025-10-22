@@ -5,13 +5,15 @@ import bcryptjs from "bcryptjs";
 import crypto from "crypto";
 
 import UserDto from "../dtos/user.dto.js";
+import BusinessDto from "../dtos/business.dto.js";
 import { User } from "../models/user.model.js";
+import { Business } from "../models/bussiness.model.js";
 import BaseError from "../errors/base.error.js";
 import MailService from "./mail.service.js";
 import TokenService from "./token.service.js";
 
 class AuthService {
-	async signup(email, password, name) {
+	async signup(email, password, name, phone, avatar) {
 		if (!email || !password || !name) {
 			throw BaseError.BadRequestError("All fields are required");
 		}
@@ -28,6 +30,8 @@ class AuthService {
 			email,
 			password: hashedPassword,
 			name,
+			phone,
+			avatar,
 			verificationToken,
 			verificationTokenExpiresAt: Date.now() + (Number(process.env.VERIFICATION_TTL_MINUTES || 10) * 60 * 1000),
 			lastVerificationSentAt: new Date(),
@@ -42,6 +46,46 @@ class AuthService {
 		const { accessToken, refreshToken } = TokenService.generateToken({ id: user._id, email: user.email });
 		await TokenService.saveToken(user._id, refreshToken);
 		return { user: userDto, accessToken, refreshToken };
+	}
+
+	async businessSignup(email, password, name, phoneNumber, description, address, businessType) {
+		if (!email || !password || !name) {
+			throw BaseError.BadRequestError("Email, password and name are required");
+		}
+
+		// User va Business email'larini tekshirish
+		const userExists = await User.findOne({ email });
+		const businessExists = await Business.findOne({ email });
+		
+		if (userExists || businessExists) {
+			throw BaseError.BadRequestError("Email already exists");
+		}
+
+		const hashedPassword = await bcryptjs.hash(password, 10);
+		const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+
+		const business = new Business({
+			email,
+			password: hashedPassword,
+			name,
+			phoneNumber,
+			description,
+			address,
+			businessType,
+			verificationToken,
+			verificationTokenExpiresAt: Date.now() + (Number(process.env.VERIFICATION_TTL_MINUTES || 10) * 60 * 1000),
+			lastVerificationSentAt: new Date(),
+			dailyVerificationSentCount: 1,
+		});
+
+		await business.save();
+
+		await MailService.sendVerificationEmail(business.email, verificationToken);
+
+		const businessDto = new BusinessDto(business);
+		const { accessToken, refreshToken } = TokenService.generateToken({ id: business._id, email: business.email });
+		await TokenService.saveToken(business._id, refreshToken);
+		return { business: businessDto, accessToken, refreshToken };
 	}
 
 	async verifyEmail(code) {
@@ -128,6 +172,22 @@ class AuthService {
 		const { accessToken, refreshToken } = TokenService.generateToken({ id: user._id, email: user.email });
 		await TokenService.saveToken(user._id, refreshToken);
 		return { user: userDto, accessToken, refreshToken };
+	}
+
+	async businessLogin(email, password) {
+		const business = await Business.findOne({ email });
+		if (!business) throw BaseError.BadRequestError("Invalid credentials");
+
+		const isPasswordValid = await bcryptjs.compare(password, business.password);
+		if (!isPasswordValid) throw BaseError.BadRequestError("Invalid credentials");
+
+		business.lastLogin = new Date();
+		await business.save();
+
+		const businessDto = new BusinessDto(business);
+		const { accessToken, refreshToken } = TokenService.generateToken({ id: business._id, email: business.email });
+		await TokenService.saveToken(business._id, refreshToken);
+		return { business: businessDto, accessToken, refreshToken };
 	}
 
 	async forgotPassword(email) {
