@@ -18,6 +18,13 @@ import { useBusinessToken } from "@/store/business-store"
 export const useBusinessSignup = () => {
   return useMutation<BusinessAuthResponse, Error, BusinessSignupPayload>({
     mutationFn: signupBusiness,
+    onSuccess: (data) => {
+      console.log('Business signup successful:', data);
+      // The token is already stored in the business store by signupBusiness
+    },
+    onError: (error) => {
+      console.error('Business signup failed:', error);
+    },
   })
 }
 

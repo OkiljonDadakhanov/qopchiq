@@ -74,6 +74,17 @@ class BusinessService {
 		const update = {};
 		for (const key of allowed) if (data[key] !== undefined) update[key] = data[key];
 		
+		// Handle location update
+		if (data.location && data.location.coordinates && Array.isArray(data.location.coordinates) && data.location.coordinates.length === 2) {
+			const [longitude, latitude] = data.location.coordinates;
+			if (typeof longitude === "number" && typeof latitude === "number") {
+				update.location = {
+					type: "Point",
+					coordinates: [longitude, latitude]
+				};
+			}
+		}
+		
 		if (Object.keys(update).length === 0) throw BaseError.BadRequestError("Nothing to update");
 		
 		const business = await Business.findByIdAndUpdate(businessId, update, { new: true });
