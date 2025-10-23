@@ -39,6 +39,11 @@ export const uploadBusinessLogo = async (file: File) => {
   return response.data.business
 }
 
+export const removeBusinessLogo = async () => {
+  const { data } = await client.delete<{ success: boolean; business: BusinessAccount }>("/api/business/me/avatar")
+  return data.business
+}
+
 export const createBranch = async (payload: BranchPayload) => {
   const { data } = await client.post<{ success: boolean; business: BusinessAccount }>("/api/business/me/branches", payload)
   return data.business

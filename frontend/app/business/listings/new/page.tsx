@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { ArrowLeft, Upload, X, Loader2 } from "lucide-react"
+import { ArrowLeft, Upload, X, Loader2, ChevronDown, Search } from "lucide-react"
 import { useMutation, useQuery } from "@tanstack/react-query"
 
 import { Button } from "@/components/ui/button"
@@ -13,11 +13,28 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useCustomToast } from "@/components/custom-toast"
 import { createProduct } from "@/api/services/products"
-import client from "@/api/client"
+import { fetchCategories } from "@/api/services/categories"
+import type { Category } from "@/types/category"
 
-interface Category {
-  _id: string
-  name: string
+// Icon mapping for categories
+const getCategoryIcon = (categoryName: string) => {
+  const name = categoryName.toLowerCase()
+  if (name.includes('meal') || name.includes('food')) return "🍽️"
+  if (name.includes('bakery') || name.includes('bread')) return "🥐"
+  if (name.includes('grocery') || name.includes('grocery')) return "🛒"
+  if (name.includes('fresh') || name.includes('produce')) return "🥬"
+  if (name.includes('dairy') || name.includes('milk')) return "🥛"
+  if (name.includes('meat') || name.includes('seafood')) return "🥩"
+  if (name.includes('beverage') || name.includes('drink')) return "🥤"
+  if (name.includes('snack')) return "🍿"
+  if (name.includes('plant') || name.includes('flower')) return "🌸"
+  if (name.includes('cosmetic') || name.includes('beauty')) return "💄"
+  if (name.includes('health') || name.includes('wellness')) return "💊"
+  if (name.includes('household')) return "🏠"
+  if (name.includes('book') || name.includes('media')) return "📚"
+  if (name.includes('clothing') || name.includes('accessories')) return "👕"
+  if (name.includes('electronic')) return "📱"
+  return "🔘"
 }
 
 const quantityUnits = [
@@ -32,6 +49,8 @@ export default function NewListingPage() {
   const router = useRouter()
   const toast = useCustomToast()
   const [images, setImages] = useState<File[]>([])
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
+  const [categorySearch, setCategorySearch] = useState("")
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -45,15 +64,45 @@ export default function NewListingPage() {
     pickupEndTime: "",
   })
 
-  const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
+  const { data: categoriesData, isLoading: isCategoriesLoading, error: categoriesError } = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => {
-      const { data } = await client.get<{ success: boolean; categories: Category[] }>("/api/categories")
-      return data.categories ?? []
-    },
+    queryFn: fetchCategories,
+    staleTime: 1000 * 60 * 10, // 10 minutes
   })
 
-  const categories = useMemo(() => categoriesData ?? [], [categoriesData])
+  const categories = useMemo(() => categoriesData?.categories ?? [], [categoriesData])
+
+  // Filter categories based on search
+  const filteredCategories = useMemo(() => {
+    if (!categorySearch.trim()) return categories
+    return categories.filter(category => 
+      category.name.toLowerCase().includes(categorySearch.toLowerCase())
+    )
+  }, [categories, categorySearch])
+
+  // Get selected category object
+  const selectedCategory = useMemo(() => {
+    return categories.find(cat => cat._id === form.category)
+  }, [categories, form.category])
+
+  // Handle click outside to close dropdown
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false)
+      }
+    }
+
+    if (isCategoryDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isCategoryDropdownOpen])
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -175,20 +224,74 @@ export default function NewListingPage() {
 
           <div>
             <Label htmlFor="category">Category</Label>
-            <select
-              id="category"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2"
-              value={form.category}
-              onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-              disabled={isCategoriesLoading}
-            >
-              <option value="">Select category</option>
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-left flex items-center justify-between bg-white"
+                disabled={isCategoriesLoading}
+              >
+                <div className="flex items-center gap-2">
+                  {selectedCategory ? (
+                    <>
+                      <span className="text-lg">{getCategoryIcon(selectedCategory.name)}</span>
+                      <span>{selectedCategory.name}</span>
+                    </>
+                  ) : (
+                    <span className="text-gray-500">Select category</span>
+                  )}
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isCategoryDropdownOpen && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
+                  <div className="p-2 border-b border-gray-200">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        placeholder="Search categories..."
+                        value={categorySearch}
+                        onChange={(e) => setCategorySearch(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {isCategoriesLoading ? (
+                      <div className="p-3 text-center text-gray-500">
+                        <Loader2 className="w-4 h-4 animate-spin mx-auto mb-2" />
+                        Loading categories...
+                      </div>
+                    ) : categoriesError ? (
+                      <div className="p-3 text-center text-red-500">
+                        Failed to load categories
+                      </div>
+                    ) : filteredCategories.length === 0 ? (
+                      <div className="p-3 text-center text-gray-500">
+                        No categories found
+                      </div>
+                    ) : (
+                      filteredCategories.map((category) => (
+                        <button
+                          key={category._id}
+                          type="button"
+                          onClick={() => {
+                            setForm((prev) => ({ ...prev, category: category._id }))
+                            setIsCategoryDropdownOpen(false)
+                            setCategorySearch("")
+                          }}
+                          className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+                        >
+                          <span className="text-lg">{getCategoryIcon(category.name)}</span>
+                          <span>{category.name}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

@@ -1,13 +1,36 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MapPin, SlidersHorizontal, Heart, Map } from "lucide-react";
 
 import BottomNavigation from "@/components/bottom-navigation";
 import { fetchProducts } from "@/api/services/products";
+import { toggleFavorite, checkFavorite } from "@/api/services/favorites";
+import { useCustomToast } from "@/components/custom-toast";
 import type { Product } from "@/types/product";
+
+// Icon mapping for categories
+const getCategoryIcon = (categoryName: string) => {
+  const name = categoryName.toLowerCase()
+  if (name.includes('meal') || name.includes('food')) return "🍽️"
+  if (name.includes('bakery') || name.includes('bread')) return "🥐"
+  if (name.includes('grocery') || name.includes('grocery')) return "🛒"
+  if (name.includes('fresh') || name.includes('produce')) return "🥬"
+  if (name.includes('dairy') || name.includes('milk')) return "🥛"
+  if (name.includes('meat') || name.includes('seafood')) return "🥩"
+  if (name.includes('beverage') || name.includes('drink')) return "🥤"
+  if (name.includes('snack')) return "🍿"
+  if (name.includes('plant') || name.includes('flower')) return "🌸"
+  if (name.includes('cosmetic') || name.includes('beauty')) return "💄"
+  if (name.includes('health') || name.includes('wellness')) return "💊"
+  if (name.includes('household')) return "🏠"
+  if (name.includes('book') || name.includes('media')) return "📚"
+  if (name.includes('clothing') || name.includes('accessories')) return "👕"
+  if (name.includes('electronic')) return "📱"
+  return "🔘"
+}
 
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 }).format(value);
@@ -21,13 +44,111 @@ const buildPickupWindow = (product: Product) => {
   return `${start} - ${end}`;
 };
 
+// Product Card Component
+const ProductCard = ({ offer, onHeartClick }: { offer: Product; onHeartClick: (e: React.MouseEvent, productId: string) => void }) => {
+  const router = useRouter();
+  
+  // Check if this product is favorited
+  const { data: isFavorite } = useQuery({
+    queryKey: ['favorite', offer._id],
+    queryFn: () => checkFavorite(offer._id),
+    enabled: !!offer._id,
+  });
+
+  const coverImage = offer.images?.[0] ?? "/placeholder.svg";
+  const pickup = buildPickupWindow(offer);
+  const businessName = offer.business?.name ?? "Partner";
+  const businessAvatar = offer.business?.avatar ?? null;
+
+  return (
+    <div
+      key={offer._id}
+      onClick={() => router.push(`/restaurant/${offer._id}`)}
+      className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transition hover:shadow-md"
+    >
+      <div className="relative h-48">
+        <img src={coverImage} alt={offer.title} className="w-full h-full object-cover" />
+        <div className="absolute top-3 left-3 bg-yellow-300 px-3 py-1 rounded-full text-xs font-bold">
+          {offer.stock > 10 ? "10+ LEFT" : `${offer.stock} LEFT`}
+        </div>
+        <button 
+          onClick={(e) => onHeartClick(e, offer._id)}
+          className="absolute top-3 right-3 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition"
+        >
+          <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
+        </button>
+        <div className="absolute bottom-3 left-3 w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-md">
+          {businessAvatar ? (
+            <img src={businessAvatar} alt={businessName} className="w-12 h-12 rounded-lg object-cover" />
+          ) : (
+            <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-500">
+              {businessName.slice(0, 2).toUpperCase()}
+            </div>
+          )}
+        </div>
+        <div className="absolute bottom-3 right-3 bg-white px-4 py-2 rounded-full shadow-md">
+          <span className="text-gray-400 line-through text-sm">{formatPrice(offer.originalPrice)} UZS</span>
+          <span className="text-lg font-bold ml-2">{formatPrice(offer.discountPrice)} UZS</span>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-2">
+        <div className="flex items-start justify-between">
+          <h3 className="font-bold text-lg">{offer.title}</h3>
+          {offer.category && (
+            <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full text-xs">
+              <span>{getCategoryIcon(offer.category.name)}</span>
+              <span className="text-gray-600">{offer.category.name}</span>
+            </div>
+          )}
+        </div>
+        <p className="text-sm text-gray-600">{offer.description}</p>
+        <div className="flex items-center gap-3 text-sm text-gray-600">
+          <div className="flex items-center gap-1">
+            <span>👥</span>
+            <span>{businessName}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span>📦</span>
+            <span>{offer.quantity.amount} {offer.quantity.unit}</span>
+          </div>
+          {pickup ? (
+            <div className="flex items-center gap-1">
+              <span>🕐</span>
+              <span>{pickup}</span>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function FeedPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const toast = useCustomToast();
+  const queryClient = useQueryClient();
+
+  // Get URL search parameters
+  const categoriesParam = searchParams.get('categories');
+  const includeInactive = searchParams.get('includeInactive') === 'true';
+
+  // Build query parameters
+  const queryParams: Record<string, string | string[]> = {};
+  if (categoriesParam) {
+    queryParams.categories = categoriesParam.split(',');
+  }
+  if (includeInactive) {
+    queryParams.includeInactive = 'true';
+  } else {
+    queryParams.status = 'available';
+  }
 
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
-    queryKey: ["feed-products"],
+    queryKey: ["feed-products", queryParams],
     queryFn: async () => {
-      const response = await fetchProducts({ status: "available" });
+      const response = await fetchProducts(queryParams);
       return response.products;
     },
     staleTime: 1000 * 60,
@@ -35,8 +156,27 @@ export default function FeedPage() {
 
   const offers = useMemo(() => data ?? [], [data]);
 
+  // Favorite mutation
+  const favoriteMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      return await toggleFavorite(productId);
+    },
+    onSuccess: (data, productId) => {
+      queryClient.invalidateQueries({ queryKey: ['favorite', productId] });
+      toast.success(data.isFavorite ? "Added to favorites" : "Removed from favorites");
+    },
+    onError: () => {
+      toast.error("Failed to update favorites");
+    }
+  });
+
   const handleRetry = () => {
     refetch();
+  };
+
+  const handleHeartClick = (e: React.MouseEvent, productId: string) => {
+    e.stopPropagation(); // Prevent navigation to product detail
+    favoriteMutation.mutate(productId);
   };
 
   return (
@@ -83,64 +223,9 @@ export default function FeedPage() {
               </div>
             ) : null}
 
-            {offers.map((offer) => {
-              const coverImage = offer.images?.[0] ?? "/placeholder.svg";
-              const pickup = buildPickupWindow(offer);
-              const businessName = offer.business?.name ?? "Partner";
-              const businessAvatar = offer.business?.avatar ?? null;
-
-              return (
-                <div
-                  key={offer._id}
-                  onClick={() => router.push(`/restaurant/${offer._id}`)}
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transition hover:shadow-md"
-                >
-                  <div className="relative h-48">
-                    <img src={coverImage} alt={offer.title} className="w-full h-full object-cover" />
-                    <div className="absolute top-3 left-3 bg-yellow-300 px-3 py-1 rounded-full text-xs font-bold">
-                      {offer.stock > 10 ? "10+ LEFT" : `${offer.stock} LEFT`}
-                    </div>
-                    <button className="absolute top-3 right-3 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100">
-                      <Heart className="w-5 h-5" />
-                    </button>
-                    <div className="absolute bottom-3 left-3 w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-md">
-                      {businessAvatar ? (
-                        <img src={businessAvatar} alt={businessName} className="w-12 h-12 rounded-lg object-cover" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-500">
-                          {businessName.slice(0, 2).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="absolute bottom-3 right-3 bg-white px-4 py-2 rounded-full shadow-md">
-                      <span className="text-gray-400 line-through text-sm">{formatPrice(offer.originalPrice)} UZS</span>
-                      <span className="text-lg font-bold ml-2">{formatPrice(offer.discountPrice)} UZS</span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 space-y-2">
-                    <h3 className="font-bold text-lg">{offer.title}</h3>
-                    <p className="text-sm text-gray-600">{offer.description}</p>
-                    <div className="flex items-center gap-3 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <span>👥</span>
-                        <span>{businessName}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span>📦</span>
-                        <span>{offer.quantity.amount} {offer.quantity.unit}</span>
-                      </div>
-                      {pickup ? (
-                        <div className="flex items-center gap-1">
-                          <span>🕐</span>
-                          <span>{pickup}</span>
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {offers.map((offer) => (
+              <ProductCard key={offer._id} offer={offer} onHeartClick={handleHeartClick} />
+            ))}
           </div>
         </main>
 

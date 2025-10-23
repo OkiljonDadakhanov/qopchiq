@@ -34,9 +34,22 @@ const buildFormData = (payload: ProductPayload & { existingImages?: string[]; re
   return formData
 }
 
-export const fetchProducts = async (params?: Record<string, string | number>) => {
-  const { data } = await client.get<ProductsResponse>("/api/products", { params })
-  return data
+export const fetchProducts = async (params?: Record<string, string | number | string[]>) => {
+  try {
+    // Handle category filtering - support both single category and multiple categories
+    const queryParams = { ...params }
+    
+    if (queryParams.categories && Array.isArray(queryParams.categories)) {
+      // Convert array to comma-separated string for backend
+      queryParams.categories = queryParams.categories.join(',')
+    }
+    
+    const { data } = await client.get<ProductsResponse>("/api/products", { params: queryParams })
+    return data
+  } catch (error: any) {
+    console.error("Failed to fetch products:", error)
+    throw new Error(error?.response?.data?.message || "Failed to fetch products")
+  }
 }
 
 export const fetchProduct = async (id: string) => {

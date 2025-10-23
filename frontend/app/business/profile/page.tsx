@@ -17,6 +17,7 @@ import { useBusinessStore } from "@/store/business-store"
 import {
   updateBusinessProfile,
   uploadBusinessLogo,
+  removeBusinessLogo,
   createBranch,
   deleteBranch,
 } from "@/api/services/business-profile"
@@ -86,6 +87,22 @@ export default function BusinessProfilePage() {
     },
     onError: (error: any) => {
       toast.error("Upload failed", error?.message ?? "Please try again")
+    },
+  })
+
+  const removeLogoMutation = useMutation({
+    mutationFn: removeBusinessLogo,
+    onSuccess: (updatedBusiness) => {
+      setBusiness({ business: updatedBusiness })
+      setAvatarPreview(null)
+      queryClient.setQueryData(["business-profile", token], {
+        success: true,
+        business: updatedBusiness,
+      })
+      toast.success("Logo removed", "Your business logo has been removed")
+    },
+    onError: (error: any) => {
+      toast.error("Remove failed", error?.message ?? "Please try again")
     },
   })
 
@@ -168,33 +185,91 @@ export default function BusinessProfilePage() {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Branding</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <span>🎨</span>
+              Business Branding
+            </CardTitle>
+            <p className="text-sm text-gray-600">Your logo will be displayed on all your products in the feed</p>
           </CardHeader>
-          <CardContent className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            <div className="relative w-32 h-32 rounded-full bg-gray-100 overflow-hidden">
-              {avatarPreview ? (
-                <Image src={avatarPreview} alt={business.name} fill className="object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-2xl text-gray-400">
-                  {business.name.slice(0, 2).toUpperCase()}
+          <CardContent className="space-y-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+              <div className="relative group">
+                <div className="relative w-32 h-32 rounded-2xl bg-gray-100 overflow-hidden border-2 border-gray-200 shadow-sm">
+                  {avatarPreview ? (
+                    <Image src={avatarPreview} alt={business.name} fill className="object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400 font-bold">
+                      {business.name.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="logo-upload" className="block text-sm font-medium text-gray-700">
-                Business logo
-              </Label>
-              <div className="mt-2 flex items-center gap-3">
-                <Button asChild variant="outline" className="flex items-center gap-2">
-                  <label htmlFor="logo-upload" className="cursor-pointer">
-                    <Upload className="w-4 h-4" />
-                    Upload logo
-                  </label>
-                </Button>
-                {logoMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-gray-500" /> : null}
+                {logoMutation.isPending && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-2xl flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-white" />
+                  </div>
+                )}
               </div>
-              <input id="logo-upload" type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-              <p className="text-xs text-gray-500 mt-2">Upload a square image in JPG or PNG format (max 5MB).</p>
+              <div className="flex-1">
+                <Label htmlFor="logo-upload" className="block text-sm font-medium text-gray-700 mb-2">
+                  Business Logo
+                </Label>
+                <div className="flex items-center gap-3">
+                  <Button asChild variant="outline" className="flex items-center gap-2 hover:bg-gray-50">
+                    <label htmlFor="logo-upload" className="cursor-pointer">
+                      <Upload className="w-4 h-4" />
+                      {avatarPreview ? "Change Logo" : "Upload Logo"}
+                    </label>
+                  </Button>
+                  {avatarPreview && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => removeLogoMutation.mutate()}
+                      disabled={removeLogoMutation.isPending}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      {removeLogoMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "Remove"
+                      )}
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-3 space-y-1">
+                  <p className="text-xs text-gray-500">• Upload a square image in JPG or PNG format</p>
+                  <p className="text-xs text-gray-500">• Recommended size: 400x400px or larger</p>
+                  <p className="text-xs text-gray-500">• Maximum file size: 5MB</p>
+                </div>
+                {logoMutation.isError && (
+                  <p className="text-xs text-red-500 mt-2">
+                    Upload failed. Please try again with a smaller image.
+                  </p>
+                )}
+              </div>
+            </div>
+            <input id="logo-upload" type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+            
+            {/* Preview of how logo appears in feed */}
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Preview in Feed</h4>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-sm border">
+                    {avatarPreview ? (
+                      <Image src={avatarPreview} alt={business.name} width={32} height={32} className="rounded-lg object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-500">
+                        {business.name.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{business.name}</p>
+                    <p className="text-xs text-gray-500">Your logo will appear here in product cards</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
