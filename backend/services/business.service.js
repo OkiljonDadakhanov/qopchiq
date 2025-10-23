@@ -3,7 +3,6 @@ import BaseError from "../errors/base.error.js";
 import BusinessDto from "../dtos/business.dto.js";
 import StorageService from "./storage.service.js";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 
 import MailService from "./mail.service.js";
 import TokenService from "./token.service.js";
@@ -23,10 +22,10 @@ class BusinessService {
 		await business.save();
 
 		const businessDto = new BusinessDto(business);
-		const { accessToken, refreshToken } = TokenService.generateToken({ id: business._id, email: business.email, type: 'business' });
-		await TokenService.saveToken(business._id, refreshToken);
-		return { business: businessDto, accessToken, refreshToken };
-	}
+                const { accessToken, refreshToken } = TokenService.generateToken({ id: business._id, email: business.email, type: 'business' });
+                await TokenService.saveToken(business._id, refreshToken, { ownerType: "Business" });
+                return { business: businessDto, accessToken, refreshToken };
+        }
 	async signup({ name, email, password, phoneNumber, description, address }) {
 		if (!name || !email || !password) {
 			throw BaseError.BadRequestError("Name, email and password are required");
@@ -55,14 +54,18 @@ class BusinessService {
 
 		await business.save();
 
-		// send verification email
-		try { await MailService.sendVerificationEmail(business.email, verificationToken); } catch (e) { /* don't block signup */ }
+                // send verification email
+                try {
+                        await MailService.sendVerificationEmail(business.email, verificationToken);
+                } catch (e) {
+                        /* don't block signup */
+                }
 
-	const businessDto = new BusinessDto(business);
-		const { accessToken, refreshToken } = TokenService.generateToken({ id: business._id, email: business.email, type: 'business' });
-		await TokenService.saveToken(business._id, refreshToken);
-		return { business: businessDto, accessToken, refreshToken };
-	}
+                const businessDto = new BusinessDto(business);
+                const { accessToken, refreshToken } = TokenService.generateToken({ id: business._id, email: business.email, type: 'business' });
+                await TokenService.saveToken(business._id, refreshToken, { ownerType: "Business" });
+                return { business: businessDto, accessToken, refreshToken };
+        }
 	async getMe(businessId) {
 		const business = await Business.findById(businessId);
 		if (!business) throw BaseError.NotFoundError("Business not found");
