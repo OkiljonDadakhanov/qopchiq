@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Qopchiq API V0.0.5",
-    "description": "Complete API endpoints for Qopchiq application with authentication, user management, business management, and file upload",
+    "name": "Qopchiq API (testing-features)",
+    "description": "Complete API endpoints for Qopchiq application with authentication, user management, business management, file upload, and in-memory listings/reservations used for the testing-features branch",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -278,6 +278,270 @@
             },
             "description": "Reset password using token received via email"
           }
+        },
+        {
+          "name": "Listings",
+          "description": "Sample listing endpoints for testing-features branch",
+          "item": [
+            {
+              "name": "Get Listings",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{BASE_URL}}/api/listings",
+                  "host": [
+                    "{{BASE_URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "listings"
+                  ]
+                },
+                "description": "Retrieve all available listings from the in-memory store"
+              }
+            },
+            {
+              "name": "Create Listing",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/api/listings",
+                  "host": [
+                    "{{BASE_URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "listings"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Demo Listing\",\n  \"description\": \"A placeholder listing generated for testing\",\n  \"location\": {\n    \"city\": \"Tashkent\",\n    \"country\": \"Uzbekistan\"\n  },\n  \"price\": {\n    \"amount\": 99,\n    \"currency\": \"USD\"\n  }\n}"
+                },
+                "description": "Create a new listing in the in-memory store"
+              }
+            },
+            {
+              "name": "Get Listing By ID",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{BASE_URL}}/api/listings/:listingId",
+                  "host": [
+                    "{{BASE_URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "listings",
+                    ":listingId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "listingId",
+                      "value": "listing-1"
+                    }
+                  ]
+                },
+                "description": "Fetch a single listing by ID"
+              }
+            },
+            {
+              "name": "Update Listing",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/api/listings/:listingId",
+                  "host": [
+                    "{{BASE_URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "listings",
+                    ":listingId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "listingId",
+                      "value": "listing-1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated Listing Title\"\n}"
+                },
+                "description": "Update an existing listing"
+              }
+            },
+            {
+              "name": "Delete Listing",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{BASE_URL}}/api/listings/:listingId",
+                  "host": [
+                    "{{BASE_URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "listings",
+                    ":listingId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "listingId",
+                      "value": "listing-1"
+                    }
+                  ]
+                },
+                "description": "Remove a listing and its reservations"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reservations",
+          "description": "Sample reservation endpoints for testing-features branch",
+          "item": [
+            {
+              "name": "Get Reservations",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{BASE_URL}}/api/reservations",
+                  "host": [
+                    "{{BASE_URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservations"
+                  ]
+                },
+                "description": "Retrieve all reservations from the in-memory store"
+              }
+            },
+            {
+              "name": "Create Reservation",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/api/reservations",
+                  "host": [
+                    "{{BASE_URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservations"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"listingId\": \"listing-1\",\n  \"guestName\": \"Visitor\",\n  \"guestEmail\": \"visitor@example.com\",\n  \"startDate\": \"2024-11-01\",\n  \"endDate\": \"2024-11-05\"\n}"
+                },
+                "description": "Create a reservation for a listing"
+              }
+            },
+            {
+              "name": "Get Reservation By ID",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{BASE_URL}}/api/reservations/:reservationId",
+                  "host": [
+                    "{{BASE_URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservations",
+                    ":reservationId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "reservationId",
+                      "value": "reservation-1"
+                    }
+                  ]
+                },
+                "description": "Fetch a reservation by ID"
+              }
+            },
+            {
+              "name": "Update Reservation",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/api/reservations/:reservationId",
+                  "host": [
+                    "{{BASE_URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservations",
+                    ":reservationId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "reservationId",
+                      "value": "reservation-1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"confirmed\"\n}"
+                },
+                "description": "Update reservation status"
+              }
+            },
+            {
+              "name": "Delete Reservation",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{BASE_URL}}/api/reservations/:reservationId",
+                  "host": [
+                    "{{BASE_URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reservations",
+                    ":reservationId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "reservationId",
+                      "value": "reservation-1"
+                    }
+                  ]
+                },
+                "description": "Cancel an existing reservation"
+              }
+            }
+          ]
         }
       ]
     },

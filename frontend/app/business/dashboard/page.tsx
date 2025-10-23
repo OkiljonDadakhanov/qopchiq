@@ -8,15 +8,14 @@ import {
   ShoppingBag,
   TrendingUp,
   Settings,
-  LogOut,
   Eye,
-  User,
 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useBusinessProfile } from "@/hooks/business-auth";
 import { useBusinessToken, useBusinessAccount, useBusinessIsHydrated } from "@/store/business-store";
 import ImpactExplanationModal from "@/components/business-dashboard-modal";
+import BusinessProfileMenu from "@/components/business-profile-menu";
 
 function BusinessDashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -156,18 +155,7 @@ function BusinessDashboardPage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Link href="/business/profile">
-                <Button variant="ghost" size="sm" className="p-2 sm:p-3">
-                  <User className="w-5 h-5 sm:w-6 sm:h-6" />
-                </Button>
-              </Link>
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="p-2 sm:p-3">
-                  <LogOut className="w-5 h-5 sm:w-6 sm:h-6" />
-                </Button>
-              </Link>
-            </div>
+            <BusinessProfileMenu />
           </div>
         </div>
       </header>

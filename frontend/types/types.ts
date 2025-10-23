@@ -127,3 +127,72 @@ export interface PaginatedResponse<T> {
   }
 }
 
+// ===========================
+// Listing & Reservation Types
+// ===========================
+
+export interface ListingLocation {
+  city: string
+  country: string
+  address?: string
+}
+
+export interface ListingPrice {
+  amount: number
+  currency: string
+}
+
+export interface Listing {
+  id: string
+  title: string
+  description: string
+  location: ListingLocation
+  price: ListingPrice
+  images: string[]
+  amenities: string[]
+  rating?: number | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateListingPayload {
+  title: string
+  description?: string
+  location?: Partial<ListingLocation>
+  price?: Partial<ListingPrice>
+  images?: string[]
+  amenities?: string[]
+  rating?: number | null
+}
+
+export interface UpdateListingPayload extends Partial<CreateListingPayload> {}
+
+export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "completed"
+
+export interface Reservation {
+  id: string
+  listingId: string
+  guestName: string
+  guestEmail: string
+  guests: number
+  startDate: string
+  endDate: string
+  status: ReservationStatus
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateReservationPayload {
+  listingId: string
+  guestName?: string
+  guestEmail?: string
+  guests?: number
+  startDate?: string
+  endDate?: string
+  status?: ReservationStatus
+  notes?: string
+}
+
+export interface UpdateReservationPayload extends Partial<CreateReservationPayload> {}
+

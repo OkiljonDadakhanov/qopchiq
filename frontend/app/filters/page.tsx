@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useMemo, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
+
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
@@ -23,33 +24,75 @@ const dietOptions = [
 
 export default function FiltersPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [showUnavailable, setShowUnavailable] = useState(false)
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<string[]>([])
   const [selectedDiets, setSelectedDiets] = useState<string[]>([])
   const [allDay, setAllDay] = useState(true)
 
+  useEffect(() => {
+    const showUnavailableParam = searchParams.get("showUnavailable")
+    setShowUnavailable(showUnavailableParam === "true")
+
+    const foodTypeParams = searchParams.getAll("foodType")
+    if (foodTypeParams.length) {
+      setSelectedFoodTypes(foodTypeParams)
+    } else {
+      const fallback = searchParams.get("foodTypes") || searchParams.get("food_type")
+      setSelectedFoodTypes(fallback ? fallback.split(",").filter(Boolean) : [])
+    }
+
+    const dietParams = searchParams.getAll("dietary")
+    if (dietParams.length) {
+      setSelectedDiets(dietParams)
+    } else {
+      const fallback =
+        searchParams.getAll("dietaryPreferences") || searchParams.getAll("diet") || []
+      if (fallback.length) {
+        setSelectedDiets(fallback)
+      } else {
+        const singleFallback = searchParams.get("dietaryPreferences")
+        setSelectedDiets(singleFallback ? singleFallback.split(",").filter(Boolean) : [])
+      }
+    }
+  }, [searchParams])
+
   const toggleFoodType = (id: string) => {
-    setSelectedFoodTypes((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
+    setSelectedFoodTypes((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    )
   }
 
   const toggleDiet = (id: string) => {
     setSelectedDiets((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
   }
 
-  const resetFilters = () => {
+  const activeFiltersCount = useMemo(
+    () => selectedFoodTypes.length + selectedDiets.length + (showUnavailable ? 1 : 0),
+    [selectedFoodTypes.length, selectedDiets.length, showUnavailable]
+  )
+
+  const applyFilters = () => {
+    const params = new URLSearchParams()
+    if (showUnavailable) {
+      params.set("showUnavailable", "true")
+    }
+    selectedFoodTypes.forEach((type) => params.append("foodType", type))
+    selectedDiets.forEach((diet) => params.append("dietary", diet))
+
+    router.push(`/feed${params.toString() ? `?${params.toString()}` : ""}`)
+  }
+
+  const handleReset = () => {
     setShowUnavailable(false)
     setSelectedFoodTypes([])
     setSelectedDiets([])
     setAllDay(true)
+    router.push("/feed")
   }
-
-  const activeFiltersCount = selectedFoodTypes.length + selectedDiets.length + (showUnavailable ? 1 : 0)
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Status Bar */}
- 
-
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-4">
         <button onClick={() => router.back()} className="p-2 -ml-2">
@@ -122,10 +165,13 @@ export default function FiltersPage() {
       {/* Bottom Actions */}
       <div className="border-t border-gray-100 bg-white px-6 py-4">
         <div className="flex items-center gap-4">
-          <button onClick={resetFilters} className="text-base font-medium underline">
+          <button onClick={handleReset} className="text-base font-medium underline">
             Reset filters
           </button>
-          <Button className="flex-1 bg-[#00B14F] hover:bg-[#009940] text-white rounded-full py-6 text-base font-semibold">
+          <Button
+            onClick={applyFilters}
+            className="flex-1 bg-[#00B14F] hover:bg-[#009940] text-white rounded-full py-6 text-base font-semibold"
+          >
             Filter ({activeFiltersCount})
           </Button>
         </div>
