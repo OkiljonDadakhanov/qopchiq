@@ -1,76 +1,98 @@
 import mongoose from "mongoose";
 
-const productSchema = new mongoose.Schema({
-  business: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Business", // mahsulotni kim joylaganini bilish uchun
-    required: true,
-  },
-  title: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  images: {
-    type: [String], // bir nechta rasm URL
-    validate: [arrayLimit, "{PATH} exceeds the limit of 10"], // max 10 ta
-  },
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Category", // category model bilan bog'lash
-    required: true,
-  },
-  originalPrice: {
-    type: Number,
-    required: true,
-  },
-  discountPrice: {
-    type: Number,
-    required: true,
-  },
-  quantity: {
+const quantitySchema = new mongoose.Schema(
+  {
     amount: {
       type: Number,
       required: true,
+      min: 0,
     },
     unit: {
       type: String,
-      enum: ["kg", "g", "l", "ml", "pcs"], // birlik turi
+      enum: ["kg", "g", "l", "ml", "pcs"],
       default: "pcs",
     },
   },
-  stock: {
-    type: Number,
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ["available", "sold", "expired"],
-    default: "available",
-  },
-  expiresAt: {
-    type: Date, // isrofgarchilik loyihasi uchun muhim
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  { _id: false }
+);
 
-// helper function — rasm soni limiti
+const productSchema = new mongoose.Schema(
+  {
+    business: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Business",
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    images: {
+      type: [String],
+      validate: [arrayLimit, "{PATH} exceeds the limit of 10"],
+      default: [],
+    },
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: false,
+    },
+    originalPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    discountPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    quantity: {
+      type: quantitySchema,
+      required: true,
+    },
+    stock: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    status: {
+      type: String,
+      enum: ["available", "sold", "expired", "inactive"],
+      default: "available",
+    },
+    expiresAt: {
+      type: Date,
+    },
+    pickupStartTime: {
+      type: String,
+    },
+    pickupEndTime: {
+      type: String,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
 function arrayLimit(val) {
-  return val.length <= 10;
+  return !val || val.length <= 10;
 }
 
-// updatedAt auto-update qilish
 productSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();

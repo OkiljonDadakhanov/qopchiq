@@ -1,41 +1,36 @@
 import express from "express";
 import {
-	getMe,
-	updateProfile,
-	updateField,
-	updateAvatar,
-	updateLocation,
-	addDocument,
-	removeDocument,
-	deleteMe,
-	changePassword
+        getMe,
+        updateProfile,
+        updateField,
+        updateAvatar,
+        updateLocation,
+        addDocument,
+        removeDocument,
+        deleteMe,
+        changePassword,
+        listBranches,
+        createBranch,
+        updateBranch,
+        removeBranch,
 } from "../controllers/business.controller.js";
-import { authGuard } from "../middlewares/auth.middleware.js";
+import { authGuard, businessGuard } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Business profil ma'lumotlari
-router.get("/me", authGuard, getMe);
+router.get("/me", authGuard, businessGuard, getMe);
+router.patch("/me", authGuard, businessGuard, updateProfile);
+router.patch("/me/:key", authGuard, businessGuard, updateField);
+router.patch("/me/avatar", authGuard, businessGuard, updateAvatar);
+router.patch("/me/location", authGuard, businessGuard, updateLocation);
+router.post("/me/documents", authGuard, businessGuard, addDocument);
+router.delete("/me/documents/:fileId", authGuard, businessGuard, removeDocument);
+router.patch("/me/password", authGuard, businessGuard, changePassword);
+router.delete("/me", authGuard, businessGuard, deleteMe);
 
-// Profil yangilash
-router.patch("/me", authGuard, updateProfile);
-router.patch("/me/:key", authGuard, updateField);
-
-// Avatar yangilash (URL bilan)
-router.patch("/me/avatar", authGuard, updateAvatar);
-
-// Location yangilash
-router.patch("/me/location", authGuard, updateLocation);
-
-// Hujjatlar boshqaruvi
-router.post("/me/documents", authGuard, addDocument);
-router.delete("/me/documents/:fileId", authGuard, removeDocument);
-
-// Parol o'zgartirish
-router.patch("/me/password", authGuard, changePassword);
-
-// Profil o'chirish
-router.delete("/me", authGuard, deleteMe);
+router.get("/me/branches", authGuard, businessGuard, listBranches);
+router.post("/me/branches", authGuard, businessGuard, createBranch);
+router.patch("/me/branches/:branchId", authGuard, businessGuard, updateBranch);
+router.delete("/me/branches/:branchId", authGuard, businessGuard, removeBranch);
 
 export default router;
-
