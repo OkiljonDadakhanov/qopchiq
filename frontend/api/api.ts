@@ -1,7 +1,6 @@
 "use client"
 
 import axios, { AxiosError } from "axios"
-import { useAppStore } from "@/store/store"
 import type {
   AuthResponse,
   LoginCredentials,
@@ -9,8 +8,12 @@ import type {
   ApiResponse,
 } from "@/types/types"
 
-import { tokenService } from "./tokenService"
 import { getApiBaseUrl } from "@/lib/config"
+import {
+  clearStoredAuthState,
+  getStoredAccessToken,
+  syncUserAuthState,
+} from "./utils/auth-state"
 
 export const API_ENDPOINTS = {
   LOGIN: "/api/auth/login",
@@ -29,14 +32,12 @@ export const api = axios.create({
   timeout: 10000,
 })
 
-// ===========================
-// Interceptors
-// ===========================
-
 api.interceptors.request.use(
   (config) => {
-    const token = tokenService.get()
-    if (token && config.headers) config.headers.Authorization = `Bearer ${token}`
+    const token = getStoredAccessToken()
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
   (error) => Promise.reject(error),
@@ -46,17 +47,12 @@ api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      tokenService.remove()
-      useAppStore.getState().clearAll()
+      clearStoredAuthState()
       if (typeof window !== "undefined") window.location.href = "/signin"
     }
     return Promise.reject(error)
   },
 )
-
-// ===========================
-// Error Handling
-// ===========================
 
 const handleError = (error: unknown): never => {
   if (axios.isAxiosError(error)) {
@@ -73,14 +69,7 @@ const handleError = (error: unknown): never => {
 }
 
 const persistAuthState = (data: AuthResponse) => {
-  if (data.accessToken) tokenService.set(data.accessToken)
-
-  const { setUser } = useAppStore.getState()
-  setUser({
-    name: data.user?.name ?? "User",
-    email: data.user?.email ?? "",
-    isVerified: data.user?.isVerified ?? false,
-  })
+  syncUserAuthState(data)
 }
 
 const withErrorHandling = async <T>(callback: () => Promise<T>): Promise<T> => {
@@ -90,10 +79,6 @@ const withErrorHandling = async <T>(callback: () => Promise<T>): Promise<T> => {
     return handleError(error)
   }
 }
-
-// ===========================
-// Auth API
-// ===========================
 
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> =>
@@ -113,8 +98,7 @@ export const authApi = {
   logout: async (): Promise<ApiResponse> =>
     withErrorHandling(async () => {
       await api.post<ApiResponse>(API_ENDPOINTS.LOGOUT)
-      tokenService.remove()
-      useAppStore.getState().clearAll()
+      clearStoredAuthState()
       return { success: true, message: "Logged out" }
     }),
 }
