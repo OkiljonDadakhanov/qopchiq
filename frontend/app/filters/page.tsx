@@ -3,11 +3,15 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
+import { fetchCategories } from "@/api/services/categories"
+import type { Category } from "@/types/category"
 
-const foodTypes = [
+// Default food types with icons for fallback
+const defaultFoodTypes = [
   { id: "meals", label: "Meals", icon: "🍽️" },
   { id: "bakery", label: "Bakery", icon: "🥐" },
   { id: "groceries", label: "Groceries", icon: "🛒" },
@@ -15,6 +19,17 @@ const foodTypes = [
   { id: "cosmetics", label: "Cosmetics", icon: "💄" },
   { id: "other", label: "Other", icon: "🔘" },
 ]
+
+// Icon mapping for categories
+const getCategoryIcon = (categoryName: string) => {
+  const name = categoryName.toLowerCase()
+  if (name.includes('meal') || name.includes('food')) return "🍽️"
+  if (name.includes('bakery') || name.includes('bread')) return "🥐"
+  if (name.includes('grocery') || name.includes('grocery')) return "🛒"
+  if (name.includes('plant') || name.includes('flower')) return "🌸"
+  if (name.includes('cosmetic') || name.includes('beauty')) return "💄"
+  return "🔘"
+}
 
 const dietOptions = [
   { id: "vegetarian", label: "Vegetarian", icon: "🌱" },
@@ -27,6 +42,22 @@ export default function FiltersPage() {
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<string[]>([])
   const [selectedDiets, setSelectedDiets] = useState<string[]>([])
   const [allDay, setAllDay] = useState(true)
+
+  // Fetch categories from API
+  const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
+    queryKey: ['categories'],
+    queryFn: fetchCategories,
+    staleTime: 1000 * 60 * 10, // 10 minutes
+  })
+
+  // Use dynamic categories or fallback to default
+  const foodTypes = categoriesData?.categories?.length 
+    ? categoriesData.categories.map((category: Category) => ({
+        id: category._id,
+        label: category.name,
+        icon: getCategoryIcon(category.name)
+      }))
+    : defaultFoodTypes
 
   const toggleFoodType = (id: string) => {
     setSelectedFoodTypes((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
@@ -44,6 +75,22 @@ export default function FiltersPage() {
   }
 
   const activeFiltersCount = selectedFoodTypes.length + selectedDiets.length + (showUnavailable ? 1 : 0)
+
+  const applyFilters = () => {
+    const params = new URLSearchParams()
+    
+    if (selectedFoodTypes.length > 0) {
+      params.set('categories', selectedFoodTypes.join(','))
+    }
+    
+    if (showUnavailable) {
+      params.set('includeInactive', 'true')
+    }
+    
+    // Navigate back to feed with filters applied
+    const queryString = params.toString()
+    router.push(`/feed${queryString ? `?${queryString}` : ''}`)
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -72,21 +119,27 @@ export default function FiltersPage() {
         {/* Food Type Section */}
         <div className="py-6">
           <h2 className="text-xl font-bold mb-4">Food type</h2>
-          <div className="space-y-1">
-            {foodTypes.map((type) => (
-              <button
-                key={type.id}
-                onClick={() => toggleFoodType(type.id)}
-                className="w-full flex items-center justify-between py-4 border-b border-gray-100"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{type.icon}</span>
-                  <span className="text-base">{type.label}</span>
-                </div>
-                <Checkbox checked={selectedFoodTypes.includes(type.id)} />
-              </button>
-            ))}
-          </div>
+          {categoriesLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-gray-500">Loading categories...</div>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {foodTypes.map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => toggleFoodType(type.id)}
+                  className="w-full flex items-center justify-between py-4 border-b border-gray-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{type.icon}</span>
+                    <span className="text-base">{type.label}</span>
+                  </div>
+                  <Checkbox checked={selectedFoodTypes.includes(type.id)} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Diet Section */}
@@ -125,7 +178,10 @@ export default function FiltersPage() {
           <button onClick={resetFilters} className="text-base font-medium underline">
             Reset filters
           </button>
-          <Button className="flex-1 bg-[#00B14F] hover:bg-[#009940] text-white rounded-full py-6 text-base font-semibold">
+          <Button 
+            onClick={applyFilters}
+            className="flex-1 bg-[#00B14F] hover:bg-[#009940] text-white rounded-full py-6 text-base font-semibold"
+          >
             Filter ({activeFiltersCount})
           </Button>
         </div>
