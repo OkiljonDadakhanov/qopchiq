@@ -4,6 +4,7 @@ import {
         updateProfile,
         updateField,
         updateAvatar,
+        removeAvatar,
         updateLocation,
         addDocument,
         removeDocument,
@@ -22,6 +23,7 @@ router.get("/me", authGuard, businessGuard, getMe);
 router.patch("/me", authGuard, businessGuard, updateProfile);
 router.patch("/me/:key", authGuard, businessGuard, updateField);
 router.patch("/me/avatar", authGuard, businessGuard, updateAvatar);
+router.delete("/me/avatar", authGuard, businessGuard, removeAvatar);
 router.patch("/me/location", authGuard, businessGuard, updateLocation);
 router.post("/me/documents", authGuard, businessGuard, addDocument);
 router.delete("/me/documents/:fileId", authGuard, businessGuard, removeDocument);

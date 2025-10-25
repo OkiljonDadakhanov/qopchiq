@@ -27,8 +27,33 @@ const getAll = async (query = {}) => {
         const limit = Math.min(parseInt(query.limit) || 50, 200);
         const filter = {};
 
-        if (query.category && mongoose.Types.ObjectId.isValid(query.category)) {
-                filter.category = query.category;
+        // Category filtering - support single category or multiple categories
+        if (query.category) {
+                if (Array.isArray(query.category)) {
+                        // Multiple categories
+                        const validCategories = query.category.filter(cat => 
+                                mongoose.Types.ObjectId.isValid(cat)
+                        );
+                        if (validCategories.length > 0) {
+                                filter.category = { $in: validCategories };
+                        }
+                } else if (mongoose.Types.ObjectId.isValid(query.category)) {
+                        // Single category
+                        filter.category = query.category;
+                }
+        }
+
+        // Categories filtering (alternative parameter name)
+        if (query.categories) {
+                const categories = Array.isArray(query.categories) 
+                        ? query.categories 
+                        : query.categories.split(',');
+                const validCategories = categories.filter(cat => 
+                        mongoose.Types.ObjectId.isValid(cat)
+                );
+                if (validCategories.length > 0) {
+                        filter.category = { $in: validCategories };
+                }
         }
 
         if (query.business && mongoose.Types.ObjectId.isValid(query.business)) {
@@ -39,6 +64,22 @@ const getAll = async (query = {}) => {
                 filter.status = query.status;
         } else if (!query.includeInactive) {
                 filter.status = "available";
+        }
+
+        // Price range filtering
+        if (query.minPrice) {
+                filter.discountPrice = { ...filter.discountPrice, $gte: parseFloat(query.minPrice) };
+        }
+        if (query.maxPrice) {
+                filter.discountPrice = { ...filter.discountPrice, $lte: parseFloat(query.maxPrice) };
+        }
+
+        // Search by title or description
+        if (query.search) {
+                filter.$or = [
+                        { title: { $regex: query.search, $options: 'i' } },
+                        { description: { $regex: query.search, $options: 'i' } }
+                ];
         }
 
         return await Product.find(filter)

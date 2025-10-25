@@ -136,6 +136,21 @@ class BusinessService {
                 return new BusinessDto(business);
         }
 
+        async removeAvatar(businessId) {
+                const business = await Business.findById(businessId);
+                if (!business) throw BaseError.NotFoundError("Business not found");
+
+                if (business.avatarFileId) {
+                        StorageService.deleteFile(business.avatarFileId).catch(() => {});
+                }
+
+                business.avatar = undefined;
+                business.avatarFileId = undefined;
+                await business.save();
+
+                return new BusinessDto(business);
+        }
+
         async updateLocation(businessId, coordinates) {
                 const location = buildLocationFromPayload(coordinates);
                 if (!location) {

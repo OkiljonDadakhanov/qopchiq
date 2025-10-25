@@ -48,6 +48,15 @@ export const updateAvatar = async (req, res, next) => {
         }
 };
 
+export const removeAvatar = async (req, res, next) => {
+        try {
+                const business = await BusinessService.removeAvatar(req.userId);
+                return res.json({ success: true, business });
+        } catch (error) {
+                return next(error);
+        }
+};
+
 export const updateLocation = async (req, res, next) => {
         try {
                 const { coordinates } = req.body;
