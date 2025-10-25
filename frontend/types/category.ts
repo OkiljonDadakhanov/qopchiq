@@ -14,3 +14,5 @@ export interface CategoriesResponse {
   categories: Category[];
 }
 
+
+

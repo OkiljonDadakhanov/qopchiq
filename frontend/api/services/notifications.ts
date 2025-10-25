@@ -44,3 +44,5 @@ export const deleteNotification = async (notificationId: string) => {
   await client.delete(`/api/notifications/${notificationId}`)
 }
 
+
+
