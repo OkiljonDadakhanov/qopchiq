@@ -84,7 +84,7 @@ export default function RestaurantDetailPage({ params }: { params: Promise<{ id:
       const orderData = {
         productId: product._id,
         quantity,
-        businessId: product.business?._id,
+        businessId: product.business?._id ?? "",
         totalPrice: product.discountPrice * quantity,
       }
       orderMutation.mutate(orderData)
