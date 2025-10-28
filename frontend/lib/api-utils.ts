@@ -1,9 +1,12 @@
+import type { ApiErrorData, ApiErrorInstance, ApiResponseError } from '@/types/errors'
+import { isApiResponseError, isApiRequestError } from '@/types/errors'
+
 // ✅ Professional API error handling utilities
 export class ApiError extends Error {
   public status?: number
-  public data?: any
+  public data?: ApiErrorData
 
-  constructor(message: string, status?: number, data?: any) {
+  constructor(message: string, status?: number, data?: ApiErrorData) {
     super(message)
     this.name = 'ApiError'
     this.status = status
@@ -12,38 +15,43 @@ export class ApiError extends Error {
 }
 
 // ✅ Transform axios errors to consistent format
-export function transformApiError(error: any): ApiError {
-  if (error.response) {
+export function transformApiError(error: unknown): ApiError {
+  if (isApiResponseError(error)) {
     // Server responded with error status
     const { status, data } = error.response
     const message = data?.message || data?.error || `HTTP ${status} Error`
     return new ApiError(message, status, data)
-  } else if (error.request) {
+  } else if (isApiRequestError(error)) {
     // Request was made but no response received
     return new ApiError('Network error - please check your connection', 0)
+  } else if (error instanceof Error) {
+    // Something else happened with a proper Error object
+    return new ApiError(error.message)
   } else {
-    // Something else happened
-    return new ApiError(error.message || 'An unexpected error occurred')
+    // Fallback for unknown error types
+    return new ApiError('An unexpected error occurred')
   }
 }
 
 // ✅ Check if error is a network error
-export function isNetworkError(error: any): boolean {
-  return !error.response && error.request
+export function isNetworkError(error: unknown): boolean {
+  return isApiRequestError(error)
 }
 
 // ✅ Check if error is a server error (5xx)
-export function isServerError(error: any): boolean {
-  return error.response?.status >= 500
+export function isServerError(error: unknown): boolean {
+  return isApiResponseError(error) && error.response.status >= 500
 }
 
 // ✅ Check if error is a client error (4xx)
-export function isClientError(error: any): boolean {
-  return error.response?.status >= 400 && error.response?.status < 500
+export function isClientError(error: unknown): boolean {
+  return isApiResponseError(error) && 
+    error.response.status >= 400 && 
+    error.response.status < 500
 }
 
 // ✅ Get user-friendly error message
-export function getUserFriendlyMessage(error: any): string {
+export function getUserFriendlyMessage(error: unknown): string {
   if (isNetworkError(error)) {
     return 'Please check your internet connection and try again.'
   }
@@ -53,7 +61,7 @@ export function getUserFriendlyMessage(error: any): string {
   }
   
   if (isClientError(error)) {
-    const status = error.response?.status
+    const { status, data } = (error as ApiResponseError).response
     
     switch (status) {
       case 401:
@@ -63,15 +71,19 @@ export function getUserFriendlyMessage(error: any): string {
       case 404:
         return 'The requested resource was not found.'
       case 422:
-        return error.response?.data?.message || 'Please check your input and try again.'
+        return data?.message || 'Please check your input and try again.'
       case 429:
         return 'Too many requests. Please wait a moment and try again.'
       default:
-        return error.response?.data?.message || 'Something went wrong. Please try again.'
+        return data?.message || 'Something went wrong. Please try again.'
     }
   }
   
-  return error.message || 'An unexpected error occurred.'
+  if (error instanceof Error) {
+    return error.message
+  }
+  
+  return 'An unexpected error occurred.'
 }
 
 // ✅ Retry configuration for different error types
