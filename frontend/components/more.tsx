@@ -42,10 +42,9 @@ export default function MorePage() {
     
     const packagesRescued = completedOrders.length
     const moneySaved = completedOrders.reduce((total, order) => {
-      // Calculate savings as the difference between original and discount price
-      const originalPrice = order.product?.originalPrice || order.totalPrice
-      const discountPrice = order.totalPrice
-      return total + (originalPrice - discountPrice)
+      // For now, assume 30% savings on each order's total price
+      // TODO: Consider fetching full product details if original price needed
+      return total + (order.totalPrice * 0.3)
     }, 0)
     
     // Estimate CO2 saved based on food weight (rough calculation)
