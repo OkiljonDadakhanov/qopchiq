@@ -66,9 +66,10 @@ export default function NewListingPage() {
 
   const { data: categoriesData, isLoading: isCategoriesLoading, error: categoriesError } = useQuery({
     queryKey: ["categories"],
-    queryFn: fetchCategories,
+    queryFn: () => fetchCategories(), // ✅ fixed
     staleTime: 1000 * 60 * 10, // 10 minutes
   })
+
 
   const categories = useMemo(() => categoriesData?.categories ?? [], [categoriesData])
 
