@@ -5,6 +5,10 @@ npm-debug.log
 # Env
 .env
 .env.local
+.env.example
+.env.txt
+prompt1.md
+prompt2.md
 .env.*.local
 postman_collection.json
 postman_environment.json
