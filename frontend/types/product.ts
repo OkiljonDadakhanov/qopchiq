@@ -6,7 +6,7 @@ export interface ProductQuantity {
 }
 
 export interface ProductBusinessSummary {
-  id?: string;
+  _id?: string;
   name: string;
   avatar?: string | null;
   address?: string;
