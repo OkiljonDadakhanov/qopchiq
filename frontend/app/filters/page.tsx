@@ -46,7 +46,7 @@ export default function FiltersPage() {
   // Fetch categories from API
   const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
     queryKey: ['categories'],
-    queryFn: fetchCategories,
+    queryFn: () => fetchCategories(), 
     staleTime: 1000 * 60 * 10, // 10 minutes
   })
 
