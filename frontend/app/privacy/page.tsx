@@ -1,10 +1,10 @@
 export const dynamic = 'force-static'
 
-import { useRouter } from "next/navigation"
+import Link from "next/link";
 import { ChevronLeft } from "lucide-react"
 
 export default function PrivacyPage() {
-  const router = useRouter()
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -13,9 +13,9 @@ export default function PrivacyPage() {
 
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-4">
-        <button onClick={() => router.back()} className="p-2 -ml-2">
+        <Link href="/" className="p-2 -ml-2">
           <ChevronLeft className="w-6 h-6" />
-        </button>
+        </Link>
         <h1 className="text-2xl font-bold">Privacy Policy</h1>
       </div>
 
