@@ -1,37 +1,39 @@
-import axios, { AxiosError } from 'axios';
-import { getApiBaseUrl } from '@/lib/config';
-import { useBusinessStore } from '@/store/business-store';
+"use client";
+
+import axios, { AxiosError } from "axios";
+import { getApiBaseUrl } from "@/lib/config";
+import { clearStoredAuthState, getStoredAccessToken } from "./utils/auth-state";
 
 export const API_URL = getApiBaseUrl();
 
 const client = axios.create({
   baseURL: API_URL,
   headers: {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
+    Accept: "application/json",
+    "Content-Type": "application/json",
   },
-  timeout: 10000,
 });
 
-// ✅ Request interceptor to add business token
 client.interceptors.request.use(
   (config) => {
-    const token = useBusinessStore.getState().token;
+    const token = getStoredAccessToken();
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers = config.headers ?? {};
+      if (!config.headers.Authorization) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// ✅ Response interceptor for consistent error handling
 client.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    // Transform error for consistent handling
-   
-    
+    if (error.response?.status === 401) {
+      clearStoredAuthState();
+    }
     return Promise.reject(error);
   }
 );

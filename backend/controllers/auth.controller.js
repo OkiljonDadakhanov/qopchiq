@@ -28,14 +28,30 @@ export const verifyEmail = async (req, res, next) => {
 };
 
 export const login = async (req, res, next) => {
-	try {
-		const { email, password } = req.body;
-		const data = await AuthService.login(email, password);
-		setRefreshTokenCookie(res, data.refreshToken);
-		return res.status(200).json({ success: true, message: "Logged in successfully", user: data.user, accessToken: data.accessToken });
-	} catch (error) {
-		return next(error);
-	}
+        try {
+                const { email, password } = req.body;
+                const data = await AuthService.login(email, password);
+                setRefreshTokenCookie(res, data.refreshToken);
+                return res.status(200).json({ success: true, message: "Logged in successfully", user: data.user, accessToken: data.accessToken });
+        } catch (error) {
+                return next(error);
+        }
+};
+
+export const businessLogin = async (req, res, next) => {
+        try {
+                const { email, password } = req.body;
+                const data = await BusinessService.login(email, password);
+                setRefreshTokenCookie(res, data.refreshToken);
+                return res.status(200).json({
+                        success: true,
+                        message: "Business logged in successfully",
+                        business: data.business,
+                        accessToken: data.accessToken,
+                });
+        } catch (error) {
+                return next(error);
+        }
 };
 
 export const logout = async (req, res, next) => {
