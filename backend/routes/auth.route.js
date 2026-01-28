@@ -9,6 +9,7 @@ import {
   refresh,
   resendVerification,
   businessSignup,
+  businessLogin,
 } from "../controllers/auth.controller.js";
 
 const router = Router();
@@ -17,6 +18,7 @@ const router = Router();
 router.post("/signup", signup);
 // business signup (separate endpoint expected by frontend)
 router.post("/business/signup", businessSignup);
+router.post("/business/login", businessLogin);
 router.post("/login", login);
 router.post("/logout", logout);
 router.post("/refresh", refresh);

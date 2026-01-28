@@ -1,3 +1,22 @@
+export interface BusinessAvatar {
+  id?: string | null
+  url: string
+}
+
+export interface BusinessBranch {
+  id: string
+  name: string
+  address: string
+  phoneNumber: string
+  location?: {
+    type?: string
+    coordinates?: number[]
+  }
+  isActive?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
 export interface BusinessAccount {
   id?: string
   name: string
@@ -5,12 +24,13 @@ export interface BusinessAccount {
   phoneNumber?: string
   description?: string
   address?: string
-  avatar?: string | null
+  avatar?: BusinessAvatar | null
   location?: {
     type: string
     coordinates: number[]
   }
-  documents?: any[]
+  documents?: Array<{ id: string; url: string | null }>
+  branches?: BusinessBranch[]
   lastLogin?: string
   isVerified?: boolean
   isApproved?: boolean
@@ -39,4 +59,3 @@ export interface BusinessLoginPayload {
   email: string
   password: string
 }
-

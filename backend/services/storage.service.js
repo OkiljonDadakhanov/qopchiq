@@ -1,33 +1,42 @@
 import storage from "./storage/storageFactory.js";
 
 class StorageService {
-	async uploadFile(file, folder = "general") {
-		if (!file || !file.buffer) {
-			throw new Error("File not provided or invalid format");
-		}
+  async uploadFile(file, folder = "general") {
+    if (!file || !file.buffer) {
+      throw new Error("File not provided or invalid format");
+    }
 
-		// Fayl validatsiyasi
-		if (!file.mimetype.startsWith("image/")) {
-			throw new Error("Faqat rasm fayllari ruxsat etilgan");
-		}
+    // Fayl validatsiyasi
+    const allowedMimeTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
 
-		// Fayl hajmi chegarasi (5MB)
-		if (file.size > 5 * 1024 * 1024) {
-			throw new Error("Fayl hajmi 5MB dan kichik bo'lishi kerak");
-		}
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new Error("Ruxsat etilmagan fayl formati");
+    }
 
-		return await storage.uploadFile(file, folder);
-	}
+    // Fayl hajmi chegarasi (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error("Fayl hajmi 5MB dan kichik bo'lishi kerak");
+    }
 
-	async deleteFile(fileId) {
-		if (!fileId) return;
-		return await storage.deleteFile(fileId);
-	}
+    return await storage.uploadFile(file, folder);
+  }
 
-	async getFileUrl(fileId) {
-		if (!fileId) return null;
-		return await storage.getFileUrl(fileId);
-	}
+  async deleteFile(fileId) {
+    if (!fileId) return;
+    return await storage.deleteFile(fileId);
+  }
+
+  async getFileUrl(fileId) {
+    if (!fileId) return null;
+    return await storage.getFileUrl(fileId);
+  }
 }
 
 export default new StorageService();

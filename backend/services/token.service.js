@@ -31,12 +31,23 @@ class TokenService {
 		}
 	}
 
-	async saveToken(userId, refreshToken, meta = {}) {
-		const existing = await Token.findOne({ user: userId, refreshToken });
-		if (existing) return existing;
-		const doc = await Token.create({ user: userId, refreshToken, userAgent: meta.userAgent, ip: meta.ip, expiresAt: meta.expiresAt });
-		return doc;
-	}
+        async saveToken(userId, refreshToken, meta = {}) {
+                const { ownerType = "User", userAgent, ip, expiresAt } = meta;
+                const existing = await Token.findOne({ refreshToken });
+                if (existing) {
+                        if (!existing.userModel || existing.userModel !== ownerType || !existing.user?.equals?.(userId)) {
+                                existing.user = userId;
+                                existing.userModel = ownerType;
+                        }
+                        if (userAgent) existing.userAgent = userAgent;
+                        if (ip) existing.ip = ip;
+                        if (expiresAt) existing.expiresAt = expiresAt;
+                        await existing.save();
+                        return existing;
+                }
+                const doc = await Token.create({ user: userId, userModel: ownerType, refreshToken, userAgent, ip, expiresAt });
+                return doc;
+        }
 
 	async findToken(refreshToken) {
 		return Token.findOne({ refreshToken });
@@ -46,18 +57,19 @@ class TokenService {
 		await Token.deleteOne({ refreshToken });
 	}
 
-	async revokeUserTokens(userId) {
-		await Token.deleteMany({ user: userId });
-	}
+        async revokeUserTokens(userId, ownerType = "User") {
+                await Token.deleteMany({ user: userId, userModel: ownerType });
+        }
 
-	async rotateToken(oldRefreshToken, payload, meta = {}) {
-		const stored = await this.findToken(oldRefreshToken);
-		if (!stored) throw BaseError.UnauthorizedError("Token not found in DB");
-		await this.removeToken(oldRefreshToken);
-		const { refreshToken } = this.generateToken(payload);
-		await this.saveToken(payload.id || payload._id, refreshToken, meta);
-		return refreshToken;
-	}
+        async rotateToken(oldRefreshToken, payload, meta = {}) {
+                const stored = await this.findToken(oldRefreshToken);
+                if (!stored) throw BaseError.UnauthorizedError("Token not found in DB");
+                await this.removeToken(oldRefreshToken);
+                const { refreshToken } = this.generateToken(payload);
+                const ownerType = meta.ownerType || stored.userModel || "User";
+                await this.saveToken(payload.id || payload._id, refreshToken, { ...meta, ownerType });
+                return refreshToken;
+        }
 }
 
 export default new TokenService();

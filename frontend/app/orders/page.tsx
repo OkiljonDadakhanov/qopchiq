@@ -2,12 +2,86 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useQuery } from "@tanstack/react-query"
+import { Clock, MapPin, QrCode, CheckCircle, XCircle, Loader2 } from "lucide-react"
 import BottomNavigation from "@/components/bottom-navigation"
+import { fetchOrders } from "@/api/services/orders"
+import type { Order } from "@/types/order"
 
 export default function OrdersPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<"pickup" | "delivery">("pickup")
-  const [orders] = useState<any[]>([])
+
+  const { data: orders = [], isLoading, isError } = useQuery({
+    queryKey: ['orders'],
+    queryFn: fetchOrders,
+    staleTime: 1000 * 30, // 30 seconds
+  })
+
+  const formatPrice = (value: number) =>
+    new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 }).format(value)
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="w-5 h-5 text-yellow-500" />
+      case 'confirmed':
+        return <CheckCircle className="w-5 h-5 text-blue-500" />
+      case 'ready':
+        return <CheckCircle className="w-5 h-5 text-green-500" />
+      case 'completed':
+        return <CheckCircle className="w-5 h-5 text-green-600" />
+      case 'cancelled':
+        return <XCircle className="w-5 h-5 text-red-500" />
+      default:
+        return <Clock className="w-5 h-5 text-gray-500" />
+    }
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'Pending'
+      case 'confirmed':
+        return 'Confirmed'
+      case 'ready':
+        return 'Ready for pickup'
+      case 'completed':
+        return 'Completed'
+      case 'cancelled':
+        return 'Cancelled'
+      default:
+        return status
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'text-yellow-600 bg-yellow-50'
+      case 'confirmed':
+        return 'text-blue-600 bg-blue-50'
+      case 'ready':
+        return 'text-green-600 bg-green-50'
+      case 'completed':
+        return 'text-green-700 bg-green-100'
+      case 'cancelled':
+        return 'text-red-600 bg-red-50'
+      default:
+        return 'text-gray-600 bg-gray-50'
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#00B14F]" />
+          <p className="text-gray-600">Loading orders...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -63,7 +137,49 @@ export default function OrdersPage() {
               </div>
             </>
           ) : (
-            <div className="w-full space-y-4">{/* Orders will be displayed here */}</div>
+            <div className="w-full space-y-4">
+              {orders.map((order: Order) => (
+                <div key={order._id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                  <div className="flex items-start gap-4">
+                    <img
+                      src={order.product?.images?.[0] || "/placeholder.svg"}
+                      alt={order.product?.title}
+                      className="w-16 h-16 rounded-xl object-cover"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg mb-1">{order.product?.title}</h3>
+                      <p className="text-sm text-gray-600 mb-2">{order.product?.business?.name}</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm font-semibold">Qty: {order.quantity}</span>
+                        <span className="text-sm font-bold text-[#00B14F]">
+                          {formatPrice(order.totalPrice)} UZS
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                          <div className="flex items-center gap-1">
+                            {getStatusIcon(order.status)}
+                            <span>{getStatusText(order.status)}</span>
+                          </div>
+                        </div>
+                        {order.qrToken && (
+                          <button className="flex items-center gap-1 text-sm text-blue-600">
+                            <QrCode className="w-4 h-4" />
+                            <span>QR Code</span>
+                          </button>
+                        )}
+                      </div>
+                      {order.product?.business?.address && (
+                        <div className="flex items-center gap-1 mt-2 text-sm text-gray-600">
+                          <MapPin className="w-4 h-4" />
+                          <span>{order.product.business.address}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 

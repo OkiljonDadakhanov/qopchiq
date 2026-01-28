@@ -1,12 +1,49 @@
 import { useState } from 'react';
 import { Info, X, Leaf, CloudOff } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchMyProducts } from '@/api/services/products';
 
 export default function ImpactExplanationModal() {
   const [isOpen, setIsOpen] = useState(false);
 
+  const { data: products } = useQuery({
+    queryKey: ['business-products'],
+    queryFn: fetchMyProducts,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Calculate impact metrics from actual product data
+  const calculateImpact = () => {
+    if (!products || products.length === 0) {
+      return { foodWaste: 0, co2Saved: 0, mealsSaved: 0 };
+    }
+
+    const totalWeight = products.reduce((sum, product) => {
+      const weight = product.quantity.amount;
+      const unit = product.quantity.unit;
+      
+      // Convert to kg for consistent calculation
+      let weightInKg = weight;
+      if (unit === 'g') weightInKg = weight / 1000;
+      else if (unit === 'ml') weightInKg = weight / 1000; // Assuming 1ml = 1g for liquids
+      else if (unit === 'l') weightInKg = weight;
+      else if (unit === 'pcs') weightInKg = weight * 0.5; // Estimate 0.5kg per piece
+      
+      return sum + (weightInKg * product.stock);
+    }, 0);
+
+    const foodWaste = Math.round(totalWeight);
+    const co2Saved = Math.round(foodWaste * 2); // Standard 2x multiplier for CO2
+    const mealsSaved = Math.round(foodWaste * 2.5); // Estimate 2.5 meals per kg
+
+    return { foodWaste, co2Saved, mealsSaved };
+  };
+
+  const { foodWaste, co2Saved, mealsSaved } = calculateImpact();
+
   return (
     <div className="bg-gradient-to-br from-green-50 to-green-100 p-8 flex items-center justify-center">
-      {/* Demo Card with Modal Trigger */}
+      {/* Dynamic Card with Modal Trigger */}
       <div className="bg-white rounded-xl p-6 shadow-lg max-w-md w-full">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-gray-900">Your impact</h3>
@@ -21,11 +58,11 @@ export default function ImpactExplanationModal() {
         
         <div className="space-y-4">
           <div>
-            <div className="text-2xl font-bold text-gray-900">156 kg</div>
+            <div className="text-2xl font-bold text-gray-900">{foodWaste} kg</div>
             <div className="text-sm text-gray-600">Food waste prevented</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900">312 kg</div>
+            <div className="text-2xl font-bold text-gray-900">{co2Saved} kg</div>
             <div className="text-sm text-gray-600">CO₂ emissions saved</div>
           </div>
         </div>
@@ -66,13 +103,13 @@ export default function ImpactExplanationModal() {
                 </div>
                 <p className="text-sm text-gray-700 leading-relaxed">
                   When businesses sell their surplus food through Qopchiq instead of throwing it away, 
-                  we track the weight of food saved. Your <strong>156 kg</strong> represents all the meals 
+                  we track the weight of food saved. Your <strong>{foodWaste} kg</strong> represents all the meals 
                   and ingredients that found hungry customers instead of ending up in landfills.
                 </p>
                 <div className="mt-4 bg-white rounded-lg p-3">
                   <p className="text-xs text-gray-600 font-medium">💡 Did you know?</p>
                   <p className="text-xs text-gray-600 mt-1">
-                    156 kg of food is approximately <strong>400+ meals</strong> saved from waste!
+                    {foodWaste} kg of food is approximately <strong>{mealsSaved}+ meals</strong> saved from waste!
                   </p>
                 </div>
               </div>
@@ -92,14 +129,14 @@ export default function ImpactExplanationModal() {
                 </div>
                 <p className="text-sm text-gray-700 leading-relaxed">
                   When food waste decomposes in landfills, it releases methane and CO₂—powerful greenhouse gases. 
-                  Your <strong>312 kg</strong> of CO₂ savings comes from preventing that decomposition and avoiding 
+                  Your <strong>{co2Saved} kg</strong> of CO₂ savings comes from preventing that decomposition and avoiding 
                   the emissions from producing replacement food.
                 </p>
                 <div className="mt-4 bg-white rounded-lg p-3">
                   <p className="text-xs text-gray-600 font-medium">🌍 For perspective:</p>
                   <p className="text-xs text-gray-600 mt-1">
-                    312 kg CO₂ is equivalent to driving a car for <strong>1,300 km</strong> or 
-                    charging <strong>38,000 smartphones</strong>!
+                    {co2Saved} kg CO₂ is equivalent to driving a car for <strong>{Math.round(co2Saved * 4.2)} km</strong> or 
+                    charging <strong>{Math.round(co2Saved * 122)} smartphones</strong>!
                   </p>
                 </div>
               </div>

@@ -12,11 +12,14 @@ import { CTACard } from "@/components/more/cta-card"
 import { SocialMedia } from "@/components/more/social-media"
 import { TipsSection } from "@/components/more/tips-section"
 import BottomNavigation from "@/components/bottom-navigation"
+import { useQuery } from "@tanstack/react-query"
 import { useAuthGuard } from "@/hooks/use-auth-guard"
 import { useLogout } from "@/hooks/use-logout"
-import { useUserName, useUserStats } from "@/store/store"
+import { useUserName } from "@/store/store"
+import { fetchOrders } from "@/api/services/orders"
 import { MORE_ROUTES } from "@/constants/more"
 import type { MenuItem } from "@/types/more"
+import type { Order } from "@/types/order"
 
 export default function MorePage() {
   const router = useRouter()
@@ -25,7 +28,39 @@ export default function MorePage() {
 
   // Get user data from store
   const userName = useUserName() || "User"
-  const userStats = useUserStats()
+  
+  // Fetch user orders to calculate stats
+  const { data: orders = [] } = useQuery({
+    queryKey: ['user-orders'],
+    queryFn: fetchOrders,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  })
+
+  // Calculate user stats from orders
+  const calculateUserStats = () => {
+    const completedOrders = orders.filter((order: Order) => order.status === 'completed')
+    
+    const packagesRescued = completedOrders.length
+    const moneySaved = completedOrders.reduce((total, order) => {
+      // For now, assume 30% savings on each order's total price
+      // TODO: Consider fetching full product details if original price needed
+      return total + (order.totalPrice * 0.3)
+    }, 0)
+    
+    // Estimate CO2 saved based on food weight (rough calculation)
+    const co2Saved = completedOrders.reduce((total, order) => {
+      // Assume average 0.5kg per order, 2x multiplier for CO2
+      return total + (0.5 * 2)
+    }, 0)
+
+    return {
+      packagesRescued,
+      moneySaved: Math.round(moneySaved),
+      co2Saved: Math.round(co2Saved * 10) / 10 // Round to 1 decimal
+    }
+  }
+
+  const userStats = calculateUserStats()
 
   // Protect this page
   const { isChecking, isAuthenticated } = useAuthGuard({

@@ -9,11 +9,8 @@ import { corsOptions } from "./config/cors.js";
 import { connectDB } from "./db/connectDB.js";
 
 // Routes
-import authRoutes from "./routes/auth.route.js";
 import errorHandler from "./middlewares/error.middleware.js";
-import userRoutes from "./routes/user.route.js";
-import businessRoutes from "./routes/business.route.js";
-import uploadRoutes from "./routes/upload.route.js";
+import { registerApiRoutes } from "./api/index.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,10 +30,7 @@ app.use(async (req, res, next) => {
         }
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/business", businessRoutes);
-app.use("/api/upload", uploadRoutes);
+registerApiRoutes(app);
 // Global error handler (eng oxirida)
 app.use(errorHandler);
 

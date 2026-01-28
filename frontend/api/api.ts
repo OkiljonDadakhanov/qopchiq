@@ -2,36 +2,46 @@
 
 import axios, { AxiosError } from "axios"
 import { useAppStore } from "@/store/store"
-import type { AuthResponse, LoginCredentials, SignUpCredentials } from "@/types/types"
+import type {
+  AuthResponse,
+  LoginCredentials,
+  SignUpCredentials,
+  ApiResponse,
+} from "@/types/types"
 
-import { tokenService } from './tokenService'
+import { tokenService } from "./tokenService"
+import { getApiBaseUrl } from "@/lib/config"
 
-// ===========================
-// API Setup
-// ===========================
-
-const API_ENDPOINTS = {
+export const API_ENDPOINTS = {
   LOGIN: "/api/auth/login",
   SIGNUP: "/api/auth/signup",
+  LOGOUT: "/api/auth/logout",
+  REFRESH: "/api/auth/refresh",
+  LISTINGS: "/api/listings",
+  RESERVATIONS: "/api/reservations",
 } as const
 
+const API_BASE_URL = getApiBaseUrl()
+
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: API_BASE_URL,
   headers: { "Content-Type": "application/json" },
   timeout: 10000,
 })
 
-// ✅ Attach token before each request
+// ===========================
+// Interceptors
+// ===========================
+
 api.interceptors.request.use(
   (config) => {
     const token = tokenService.get()
     if (token && config.headers) config.headers.Authorization = `Bearer ${token}`
     return config
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 )
 
-// ✅ Handle unauthorized responses
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
@@ -41,7 +51,7 @@ api.interceptors.response.use(
       if (typeof window !== "undefined") window.location.href = "/signin"
     }
     return Promise.reject(error)
-  }
+  },
 )
 
 // ===========================
@@ -62,60 +72,54 @@ const handleError = (error: unknown): never => {
   throw new Error("An unknown error occurred")
 }
 
+const persistAuthState = (data: AuthResponse) => {
+  if (data.accessToken) tokenService.set(data.accessToken)
+
+  const { setUser } = useAppStore.getState()
+  setUser({
+    name: data.user?.name ?? "User",
+    email: data.user?.email ?? "",
+    isVerified: data.user?.isVerified ?? false,
+  })
+}
+
+const withErrorHandling = async <T>(callback: () => Promise<T>): Promise<T> => {
+  try {
+    return await callback()
+  } catch (error) {
+    return handleError(error)
+  }
+}
+
 // ===========================
 // Auth API
 // ===========================
 
 export const authApi = {
-  /**
-   * 🔐 Login
-   */
-  login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    try {
+  login: async (credentials: LoginCredentials): Promise<AuthResponse> =>
+    withErrorHandling(async () => {
       const { data } = await api.post<AuthResponse>(API_ENDPOINTS.LOGIN, credentials)
-
-      if (data.accessToken) tokenService.set(data.accessToken)
-
-      const { setUser } = useAppStore.getState()
-      setUser({
-        name: data.user?.name ?? "User",
-        email: data.user?.email ?? "",
-        isVerified: data.user?.isVerified ?? false,
-      })
-
+      persistAuthState(data)
       return data
-    } catch (error) {
-      return handleError(error)
-    }
-  },
+    }),
 
-  /**
-   * 🆕 Register
-   */
-  signUp: async (credentials: SignUpCredentials): Promise<AuthResponse> => {
-    try {
+  signUp: async (credentials: SignUpCredentials): Promise<AuthResponse> =>
+    withErrorHandling(async () => {
       const { data } = await api.post<AuthResponse>(API_ENDPOINTS.SIGNUP, credentials)
-
-      if (data.accessToken) tokenService.set(data.accessToken)
-
-      const { setUser } = useAppStore.getState()
-      setUser({
-        name: data.user?.name ?? "User",
-        email: data.user?.email ?? "",
-        isVerified: data.user?.isVerified ?? false,
-      })
-
+      persistAuthState(data)
       return data
-    } catch (error) {
-      return handleError(error)
-    }
-  },
+    }),
 
-  /**
-   * 🚪 Logout
-   */
-  logout: (): void => {
-    tokenService.remove()
-    useAppStore.getState().clearAll()
-  },
+  logout: async (): Promise<ApiResponse> =>
+    withErrorHandling(async () => {
+      await api.post<ApiResponse>(API_ENDPOINTS.LOGOUT)
+      tokenService.remove()
+      useAppStore.getState().clearAll()
+      return { success: true, message: "Logged out" }
+    }),
+}
+
+export const apiUtils = {
+  handleError,
+  withErrorHandling,
 }

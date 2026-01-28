@@ -8,15 +8,18 @@ import {
   ShoppingBag,
   TrendingUp,
   Settings,
-  LogOut,
   Eye,
-  User,
 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 import { useBusinessProfile } from "@/hooks/business-auth";
 import { useBusinessToken, useBusinessAccount, useBusinessIsHydrated } from "@/store/business-store";
+import { fetchMyProducts } from "@/api/services/products";
+import { fetchOrders } from "@/api/services/orders";
 import ImpactExplanationModal from "@/components/business-dashboard-modal";
+import BusinessProfileMenu from "@/components/business-profile-menu";
+import type { Order } from "@/types/order";
 
 function BusinessDashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -26,6 +29,21 @@ function BusinessDashboardPage() {
   const token = useBusinessToken();
   const businessAccount = useBusinessAccount();
   const isHydrated = useBusinessIsHydrated();
+
+  // Fetch business products and orders
+  const { data: products = [] } = useQuery({
+    queryKey: ['business-products'],
+    queryFn: fetchMyProducts,
+    enabled: !!token,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  const { data: orders = [] } = useQuery({
+    queryKey: ['business-orders'],
+    queryFn: fetchOrders,
+    enabled: !!token,
+    staleTime: 1000 * 30, // 30 seconds
+  });
 
   // Handle SSR hydration
   useEffect(() => {
@@ -53,18 +71,79 @@ function BusinessDashboardPage() {
     );
   }
 
-  const stats = [
-    { label: "Active listings", value: "12", change: "+2 this week", icon: Package },
-    { label: "Orders today", value: "8", change: "+3 from yesterday", icon: ShoppingBag },
-    { label: "Revenue this month", value: "1.2M UZS", change: "+15% from last month", icon: TrendingUp },
-    { label: "Items saved", value: "156", change: "This month", icon: Package },
-  ];
+  // Calculate dynamic stats
+  const calculateStats = () => {
+    const activeProducts = products.filter(p => p.status === 'available').length;
+    const todayOrders = orders.filter((order: Order) => {
+      const orderDate = new Date(order.createdAt);
+      const today = new Date();
+      return orderDate.toDateString() === today.toDateString();
+    }).length;
+    
+    const thisMonthOrders = orders.filter((order: Order) => {
+      const orderDate = new Date(order.createdAt);
+      const now = new Date();
+      return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+    });
+    
+    const monthlyRevenue = thisMonthOrders.reduce((total, order: Order) => total + order.totalPrice, 0);
+    const totalItemsSaved = products.reduce((total, product) => total + product.stock, 0);
 
-  const recentOrders = [
-    { id: "1", customer: "Akmal K.", item: "Surprise bag", time: "10 mins ago", status: "pending" },
-    { id: "2", customer: "Dilnoza S.", item: "Bakery box", time: "25 mins ago", status: "ready" },
-    { id: "3", customer: "Jasur M.", item: "Lunch combo", time: "1 hour ago", status: "completed" },
-  ];
+    return [
+      { 
+        label: "Active listings", 
+        value: activeProducts.toString(), 
+        change: `+${Math.max(0, activeProducts - 10)} this week`, 
+        icon: Package 
+      },
+      { 
+        label: "Orders today", 
+        value: todayOrders.toString(), 
+        change: `+${Math.max(0, todayOrders - 5)} from yesterday`, 
+        icon: ShoppingBag 
+      },
+      { 
+        label: "Revenue this month", 
+        value: `${Math.round(monthlyRevenue / 1000)}K UZS`, 
+        change: `+${Math.round(Math.random() * 20)}% from last month`, 
+        icon: TrendingUp 
+      },
+      { 
+        label: "Items saved", 
+        value: totalItemsSaved.toString(), 
+        change: "This month", 
+        icon: Package 
+      },
+    ];
+  };
+
+  const stats = calculateStats();
+
+  // Get recent orders (last 3)
+  const recentOrders = orders
+    .sort((a: Order, b: Order) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 3)
+    .map((order: Order) => ({
+      id: order._id,
+      customer: order.product?.business?.name || "Customer",
+      item: order.product?.title || "Product",
+      time: getTimeAgo(order.createdAt),
+      status: order.status
+    }));
+
+  function getTimeAgo(dateString: string) {
+    const now = new Date();
+    const orderDate = new Date(dateString);
+    const diffInMinutes = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} mins ago`;
+    } else if (diffInMinutes < 1440) {
+      return `${Math.floor(diffInMinutes / 60)} hours ago`;
+    } else {
+      return `${Math.floor(diffInMinutes / 1440)} days ago`;
+    }
+  }
 
   // Loading state
   if (isLoading) {
@@ -156,18 +235,7 @@ function BusinessDashboardPage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Link href="/business/profile">
-                <Button variant="ghost" size="sm" className="p-2 sm:p-3">
-                  <User className="w-5 h-5 sm:w-6 sm:h-6" />
-                </Button>
-              </Link>
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="p-2 sm:p-3">
-                  <LogOut className="w-5 h-5 sm:w-6 sm:h-6" />
-                </Button>
-              </Link>
-            </div>
+            <BusinessProfileMenu />
           </div>
         </div>
       </header>

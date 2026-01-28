@@ -68,9 +68,15 @@ export const loginBusiness = async (
   }
 }
 
-export const logoutBusiness = () => {
+export const logoutBusiness = async () => {
   const { clear } = useBusinessStore.getState()
-  clear()
+  try {
+    await client.post("/api/auth/logout")
+  } catch (error) {
+    console.warn("Business logout request failed:", error)
+  } finally {
+    clear()
+  }
 }
 
 export const getBusinessProfile = async (): Promise<{ success: boolean; business: BusinessAccount }> => {
